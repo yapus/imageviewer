@@ -1,0 +1,14 @@
+dependencies:
+  - name: jquery
+    version: 3.2.1
+    src: "htmlwidgets/lib"
+    script: jquery.min.js
+  - name: jquery-ui
+    version: 1.12.1
+    src: "htmlwidgets/lib"
+    script: jquery-ui.min.js
+    stylesheet: jquery-ui.css
+  - name: glfx
+    version: 1.0.0
+    src: "htmlwidgets/lib"
+    script: glfx.js

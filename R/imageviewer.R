@@ -1,9 +1,15 @@
-#' <Add Title>
+#' imageviewer
 #'
-#' <Add Description>
+#' Simple htmlwidgets matrix viewer with WebGL brightness/contrast
+#' @param data A matrix
+#' @return Plot matrix in html widget
+#' @examples
+#' # Create matrix
+#' m <- matrix(rnorm(512 * 512, mean = 100, sd = 10), 512, 512)
 #'
+#' # Plot
+#' imageviewer(m)
 #' @import htmlwidgets
-#'
 #' @export
 imageviewer <- function(data, width = NULL, height = NULL, elementId = NULL) {
 

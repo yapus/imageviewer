@@ -12,7 +12,7 @@ HTMLWidgets.widget({
 
       renderValue: function(x) {
 
-        var data = [].concat(... (x.data || []) );
+        var data = x.data[0].hasOwnProperty('length') ? [].concat(... (x.data || []) ) : x.data;
         var imageWidth  = 512
           , imageHeight = 512
           ;

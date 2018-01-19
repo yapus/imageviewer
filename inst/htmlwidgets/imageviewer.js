@@ -30,9 +30,6 @@ HTMLWidgets.widget({
         })
 
         var id = Math.random().toString().replace('.','');
-        var sliderStyle = { width: '100%', height: '24px' };
-        $(el).append( $(`<div id="brightness_${id}" class="brightness slider"></div>`).css(sliderStyle) );
-        $(el).append( $(`<div id="contrast_${id}" class="contrast slider"></div>`).css(sliderStyle) );
         try {
           canvas = fx.canvas();
         } catch (e) {
@@ -45,16 +42,20 @@ HTMLWidgets.widget({
         // insert canvas into widget
         el.appendChild(canvas);
 
-        var refreshFilter = function() {
+        $(el).append( $(`<div id="brightness_${id}" class="brightness slider"></div>`) );
+        $(el).append( $(`<div id="contrast_${id}" class="contrast slider"></div>`) );
+
+        var refreshFilter = function(event, ui) {
           var brightness = ($( `#brightness_${id}` ).slider( "value" ) - 128) / 128
             , contrast   = ($( `#contrast_${id}` ).slider( "value" ) - 128) / 128
             ;
+          $(ui.handle.parentNode).find('.ui-slider-handle').text( Math.floor(100 * (ui.value - 127) / 128.0) + '%');
           // console.log(brightness, contrast);
           canvas.draw(texture).brightnessContrast(brightness, contrast).update();
         };
 
         $('div.slider').slider({
-          orientation: "horizontal",
+          orientation: "vertical",
           range: "min",
           max: 255,
           value: 127,

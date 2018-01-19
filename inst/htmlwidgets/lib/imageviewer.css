@@ -1,0 +1,36 @@
+  canvas {
+    border: 1px solid red;
+    display: inline-block;
+    margin-right: 5px;
+  }
+  #sliders {
+    display: inline-block;
+    height: 550px;
+  }
+  div.slider {
+    display: inline-block;
+    height: 512px;
+    width: 40px;
+  }
+  div.slider .ui-slider-handle {
+    width: 45px;
+    z-index: 6;
+    text-align: center;
+  }
+  div.slider::after {
+    position: absolute;
+    transform: rotate(-90deg);
+    top: 450px;
+    left: -15px;
+    z-index: 5;
+  }
+  div.slider.brightness::after {
+    content: "Brightness";
+  }
+  div.slider.contrast::after {
+    content: "Contrast";
+  }
+  div.text {
+    display: inline-block;
+    width: 10px;
+  }

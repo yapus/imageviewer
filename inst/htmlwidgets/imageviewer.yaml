@@ -12,3 +12,7 @@ dependencies:
     version: 1.0.0
     src: "htmlwidgets/lib"
     script: glfx.js
+  - name: imageviewer
+    version: 1.0.0
+    src: "htmlwidgets/lib"
+    stylesheet: imageviewer.css

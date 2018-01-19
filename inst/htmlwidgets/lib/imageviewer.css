@@ -1,7 +1,12 @@
-  canvas {
+  canvas#image {
     border: 1px solid red;
     display: inline-block;
     margin-right: 5px;
+    cursor: crosshair;
+  }
+  canvas#barchart {
+    border: 1px solid red;
+    display: block;
   }
   #sliders {
     display: inline-block;
@@ -33,4 +38,16 @@
   div.text {
     display: inline-block;
     width: 10px;
+  }
+
+  div#outputValues {
+    width: 512px;
+    height: 30px;
+    border: 1px solid black;
+    margin-top: -30px;
+    margin-bottom: 10px;
+  }
+  div#outputValues input {
+    height: 24px;
+    font-size: 14px;
   }

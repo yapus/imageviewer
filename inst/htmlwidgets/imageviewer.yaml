@@ -8,10 +8,10 @@ dependencies:
     src: "htmlwidgets/lib"
     script: jquery-ui.min.js
     stylesheet: jquery-ui.css
-  - name: glfx
-    version: 1.0.0
+  - name: imagefilters
+    version: 1.0.1
     src: "htmlwidgets/lib"
-    script: glfx.js
+    script: imagefilters.js
   - name: imageviewer
     version: 1.0.0
     src: "htmlwidgets/lib"

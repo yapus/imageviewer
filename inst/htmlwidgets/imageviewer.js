@@ -37,10 +37,14 @@ HTMLWidgets.widget({
 
       renderValue: function(x) {
 
-        var data = x.data[0].hasOwnProperty('length') ? [].concat(... (x.data || []) ) : x.data;
-        var maxValue = data.reduce((a, b) => (a < b ? b : a), 0);
-        var normdata = data.map((d, i) => Math.floor(255.0 * d / maxValue));
-        var imageWidth  = data.width  || 512
+        var data        = ( null != x.data[0] && x.data[0].hasOwnProperty('length') )
+                        ? [].concat(... (x.data || []) )
+                        : x.data
+          , settings    = x.settings || {}
+          , isBarChart  = ('bar' === settings.chart)
+          , maxValue    = data.reduce((a, b) => (a < b ? b : a), 0)
+          , normdata    = data.map((d, i) => Math.floor(255.0 * d / maxValue))
+          , imageWidth  = data.width  || 512
           , imageHeight = data.height || 512
           ;
 
@@ -120,15 +124,26 @@ HTMLWidgets.widget({
               ctx.beginPath();
               ctx.setLineDash([5, 5]);
               if ('X' === k) {
-                ctx.moveTo(canvasMousePos.x, 0);
+                ctx.moveTo(canvasMousePos.x, 0           );
                 ctx.lineTo(canvasMousePos.x, chart.height);
               } else {
-                ctx.moveTo(0, canvasMousePos.y);
+                ctx.moveTo(0,           canvasMousePos.y);
                 ctx.lineTo(chart.width, canvasMousePos.y);
               }
               ctx.stroke();
 
-              ctx.fillStyle = 'green';
+              if ( isBarChart ) {
+                ctx.fillStyle = 'green';
+              } else {
+                ctx.strokeStyle = 'green';
+                ctx.beginPath();
+                ctx.setLineDash([]);
+                ctx.moveTo(...( ('X' === k)
+                            ? [ 0, chart.height ]
+                            : [ chart.width, 0 ]
+                              ) );
+              }
+
               var line = normdata.filter((v, i) => (
                   ('X' === k)
                   ? Math.floor(i / imageWidth) == canvasMousePos.y
@@ -137,11 +152,15 @@ HTMLWidgets.widget({
 
               for (var i = 0; i < imageWidth; i++) {
                 if ('X' === k) {
-                  ctx.fillRect(i, chart.height - line[i], 1, line[i]);
+                  if ( isBarChart ) ctx.fillRect(i, chart.height - line[i], 1, line[i]);
+                  else              ctx.lineTo(i, chart.height - line[i]);
                 } else {
-                  ctx.fillRect(chart.width - line[i], i, line[i], 1);
+                  if ( isBarChart ) ctx.fillRect(chart.width - line[i], i, line[i], 1);
+                  else              ctx.lineTo(chart.width - line[i], i);
                 }
               }
+              // if ( !isBarChart )
+                ctx.stroke();
             })
           }
 

@@ -537,8 +537,10 @@ window.onload = function() {
     widget: (options) => {
       console.log("creating widget ", options.name)
       var el = document.getElementById('widgetId');
-      widgets[options.name] = options.factory(el, 512, 512 )
-      widgets[options.name].renderValue({ data: debugData, width: 512, height: 512 })
+      var settings;
+      // settings = { chart: 'bar' };
+      widgets[options.name] = options.factory(el, 512, 512);
+      widgets[options.name].renderValue({ data: debugData, width: 512, height: 512, settings });
     }
   };
 </script>

@@ -11,11 +11,14 @@
 #' imageviewer(m)
 #' @import htmlwidgets
 #' @export
-imageviewer <- function(data, width = NULL, height = NULL, elementId = NULL) {
+imageviewer <- function(data, width = NULL, height = NULL, elementId = NULL, options = list()) {
 
   # forward options using x
   x = list(
-    data = data
+    data = data,
+    width = width,
+    height = height,
+    options = options
   )
 
   # create widget

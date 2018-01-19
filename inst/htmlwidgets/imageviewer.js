@@ -21,29 +21,35 @@ HTMLWidgets.widget({
         var canvas = document.createElement('canvas');
         var context = canvas.getContext("2d");
 
-        var barchart = document.createElement('canvas');
-          barchart.id = 'barchart';
-          barchart.width = imageWidth;
-          barchart.height = 256;
+        var barcharts = Array.from({length: 2 }, (_, i) => {
+          var barchart = document.createElement('canvas');
+          barchart.id = `barchart${i + 1}`;
+          barchart.width  = 0 === i ? 128 : imageWidth;
+          barchart.height = 0 === i ? imageHeight : 128;
           barchart.style.border = '1px solid red';
-        var barchartContext = barchart.getContext("2d");
+          return barchart;
+        });
+        var barchartContexts = barcharts.map( barchart => barchart.getContext("2d") );
 
         var imagedata = context.createImageData(imageWidth, imageHeight);
-        data.forEach( (d, i) => {
-          var c = Math.floor(255.0 * d / maxValue);
+        var normdata = data.map((d, i) => Math.floor(255.0 * d / maxValue));
+        normdata.forEach( (c, i) => {
           imagedata.data[i * 4    ] = c;
           imagedata.data[i * 4 + 1] = c;
           imagedata.data[i * 4 + 2] = c;
           imagedata.data[i * 4 + 3] = 255;
         })
 
-        var id = Math.random().toString().replace('.','');
+        el.style.whiteSpace = 'nowrap';
+
+        var id = el.id;
         context.putImageData(imagedata, 0, 0);
         // convert the image to a texture
         // insert canvas into widget
         canvas.setAttribute('id', 'image');
         canvas.setAttribute('width', imageWidth);
         canvas.setAttribute('height', imageHeight);
+        el.appendChild(barcharts[0]);
         el.appendChild(canvas);
         var slidersNode = $('<div id="sliders">');
         slidersNode.append( $(`<div id="brightness_${id}" class="brightness slider"></div>`) );
@@ -51,7 +57,7 @@ HTMLWidgets.widget({
         $(el).append( slidersNode );
         var outputValuesNode = $('<div id="outputValues"><span>X:</span><input type="text" size="10"/>&nbsp;<span>Y:</span><input type="text" size="10"/>&nbsp;<span>VALUE:</span><input type="text" size="10"/></div>');
         $(el).append(outputValuesNode);
-        $(el).append(barchart);
+        $(el).append(barcharts[1]);
 
         var refreshFilter = function(event, ui) {
           $(ui.handle.parentNode).find('.ui-slider-handle').text( Math.floor(100 * (ui.value - 127) / 128.0) + '%');
@@ -77,17 +83,15 @@ HTMLWidgets.widget({
                    , y: evt.clientY - rect.top
                    };
           };
+        var inputs = $('#outputValues input');
         canvas.addEventListener('mouseenter', evt => { canvasMousePos.in = true; })
         canvas.addEventListener('mouseleave', evt => { canvasMousePos.in = false; })
-        canvas.addEventListener('click', evt => {
-          var inputs = $('#outputValues input');
+        canvas.addEventListener('mousemove', evt => {
+          Object.assign(canvasMousePos, getMousePos(canvas, evt));
           inputs[0].value = canvasMousePos.x;
           inputs[1].value = canvasMousePos.y;
           inputs[2].value = data[ imageWidth * canvasMousePos.y + canvasMousePos.x ];
-        });
-        canvas.addEventListener('mousemove', evt => {
-          Object.assign(canvasMousePos, getMousePos(canvas, evt));
-          var message = 'Mouse position: ' + canvasMousePos.x + ',' + canvasMousePos.y;
+          // var message = 'Mouse position: ' + canvasMousePos.x + ',' + canvasMousePos.y;
           // console.log(message);
         }, false);
 
@@ -102,16 +106,18 @@ HTMLWidgets.widget({
             context.fillRect(0, canvasMousePos.y, imageWidth, 1);
             context.fillRect(canvasMousePos.x, 0, 1, imageHeight);
 
-            barchartContext.clearRect(0, 0, barchart.width, barchart.height);
-            barchartContext.strokeStyle = 'black';
-            barchartContext.beginPath();
-            barchartContext.setLineDash([5, 10]);
-            barchartContext.moveTo(canvasMousePos.x, 0); barchartContext.lineTo(canvasMousePos.x, barchart.height);
-            barchartContext.stroke();
-            barchartContext.fillStyle = 'red';
-            var line = filtered.data.filter((v, i) => (0 == i % 4 && Math.floor(i / 4 / imageWidth) == canvasMousePos.y));
+            barchartContexts[1].clearRect(0, 0, barcharts[1].width, barcharts[1].height);
+            barchartContexts[1].strokeStyle = 'black';
+            barchartContexts[1].beginPath();
+            barchartContexts[1].setLineDash([5, 10]);
+            barchartContexts[1].moveTo(canvasMousePos.x, 0);
+            barchartContexts[1].lineTo(canvasMousePos.x, barcharts[1].height);
+            barchartContexts[1].stroke();
+            barchartContexts[1].fillStyle = 'green';
+            var line = normdata.filter((v, i) => Math.floor(i / imageWidth) == canvasMousePos.y)
+                      .map(v => v / 2);
             for (var i = 0; i < imageWidth; i++) {
-              barchartContext.fillRect(i, barchart.height - line[i], 1, line[i]);
+              barchartContexts[1].fillRect(i, barcharts[1].height - line[i], 1, line[i]);
             }
           }
 

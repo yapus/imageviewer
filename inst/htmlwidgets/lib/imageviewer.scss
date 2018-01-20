@@ -1,0 +1,86 @@
+.widgetcontainer {
+  width: 100%;
+  /*border: 1px solid cyan;*/
+
+  .row {
+    display: flex;
+    flex-wrap: nowrap;
+    margin-bottom: 5px;
+  }
+
+  #image {
+    border: 1px solid red;
+    display: inline-block;
+    margin-left: 5px;
+    margin-right: 5px;
+    cursor: crosshair;
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+  #barchartY {
+    border: 1px solid red;
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+  #barchartX {
+    border: 1px solid red;
+    display: block;
+    /*margin-left: 134px;*/
+    margin-left: 5px;
+  }
+  #sliders {
+    display: table-cell;
+    height: auto;
+    width: 100px;
+  }
+  div.slider {
+    display: inline-block;
+    height: 100%;
+    width: 40px;
+  }
+  div.slider .ui-slider-handle {
+    width: 45px;
+    z-index: 6;
+    text-align: center;
+  }
+  div.slider::after {
+    position: absolute;
+    transform: rotate(-90deg);
+    top: 80%;
+    left: -15px;
+    z-index: 5;
+  }
+  div.slider.brightness::after {
+    content: "Brightness";
+  }
+  div.slider.contrast::after {
+    content: "Contrast";
+  }
+  div.text {
+    display: inline-block;
+    width: 10px;
+  }
+
+  #outputValues {
+    width: 128px;
+    height: 128px;
+    /*border: 1px solid black;*/
+    margin-top: 5px;
+    margin-bottom: 10px;
+    display: table;
+    /*margin-left: 133px;*/
+    ul {
+      display: table-row;
+      li {
+        display: table-cell;
+        text-align: right;
+        padding-right: 5px;
+      }
+      input {
+        display: table-cell;
+        height: 24px;
+        font-size: 14px;
+      }
+    }
+  }
+}

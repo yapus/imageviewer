@@ -539,6 +539,7 @@ window.onload = function() {
       var el = document.getElementById('widgetId');
       var settings;
       // settings = { chart: 'bar' };
+      // widgets[options.name] = options.factory(el, 256, 256);
       widgets[options.name] = options.factory(el, 512, 512);
       widgets[options.name].renderValue({ data: debugData, width: 512, height: 512, settings });
     }

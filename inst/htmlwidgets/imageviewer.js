@@ -8,17 +8,20 @@ HTMLWidgets.widget({
 
     var barchartSize = 128;
     var widgetInnerHtml = (id, w, h) => {
-      return `<canvas id="barchartY" width="${barchartSize}" height="${h}"></canvas><!--
+      return `<div class="widgetcontainer"><div class="row row1" style="height:${h}px"><!--
+           --><canvas id="barchartY" width="${barchartSize}" height="${h}"></canvas><!--
            --><canvas id="image" width="${w}" height="${h}"></canvas><div id="sliders"><!--
            --><div id="brightness_${id}" class="brightness slider"></div><!--
            --><div id="contrast_${id}" class="contrast slider"></div><!--
-           --></div><!--
-           --><div class="leftbottom"></div><!--
+           --></div><div class="lineend"></div></div><!--
+           --><div class="row row2"><!--
            --><div id="outputValues"><!--
-           --><span>X:</span><input type="text" size="10"/>&nbsp;<!--
-           --><span>Y:</span><input type="text" size="10"/>&nbsp;<!--
-           --><span>VALUE:</span><input type="text" size="10"/></div><!--
-           --><canvas id="barchartX" width="${w}" height="${barchartSize}"></canvas>`;
+           --><ul><li>X:</li><input type="text" size="10"/></ul><!--
+           --><ul><li>Y:</li><input type="text" size="10"/></ul><!--
+           --><ul><li>VAL:</li><input type="text" size="10"/></ul><!--
+           --></div><!--
+           --><canvas id="barchartX" width="${w}" height="${barchartSize}"></canvas><!--
+           --></div></div>`;
     };
     el.style.whiteSpace = 'nowrap';
 

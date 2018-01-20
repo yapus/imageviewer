@@ -22,10 +22,6 @@ HTMLWidgets.widget({
     };
     el.style.whiteSpace = 'nowrap';
 
-    var refreshFilter = (event, ui) => {
-      $(ui.handle.parentNode).find('.ui-slider-handle').text( Math.floor(100 * (ui.value - 127) / 128.0) + '%');
-    };
-
     var getMousePos = (canvas, evt) => {
         var rect = canvas.getBoundingClientRect();
         return { x: evt.clientX - rect.left
@@ -71,6 +67,11 @@ HTMLWidgets.widget({
 
         context.putImageData(imagedata, 0, 0);
 
+        var isUpdated = false;
+        var refreshFilter = (event, ui) => {
+          $(ui.handle.parentNode).find('.ui-slider-handle').text( Math.floor(100 * (ui.value - 127) / 128.0) + '%');
+          isUpdated = true;
+        };
         $(el).find('div.slider').slider({
           orientation: "vertical",
           range: "min",
@@ -88,13 +89,14 @@ HTMLWidgets.widget({
 
         var canvasMousePos = { x: NaN, y: NaN, in: false };
         var inputs = $(el).find('#outputValues input');
-        canvas.addEventListener('mouseenter', evt => { canvasMousePos.in = true; })
-        canvas.addEventListener('mouseleave', evt => { canvasMousePos.in = false; })
+        canvas.addEventListener('mouseenter', evt => { canvasMousePos.in = true;  isUpdated = true; })
+        canvas.addEventListener('mouseleave', evt => { canvasMousePos.in = false; isUpdated = true; })
         canvas.addEventListener('mousemove', evt => {
           Object.assign(canvasMousePos, getMousePos(canvas, evt));
           inputs[0].value = canvasMousePos.x;
           inputs[1].value = canvasMousePos.y;
           inputs[2].value = data[ imageWidth * canvasMousePos.y + canvasMousePos.x ];
+          isUpdated = true;
         }, false);
         canvas.addEventListener('wheel', evt => {
           evt.stopImmediatePropagation();
@@ -108,6 +110,8 @@ HTMLWidgets.widget({
           var brightness = Math.floor(100 * (brightnessSlider.slider( "value" ) - 127 ) / 128.0)
             , contrast   = Math.floor(100 * (contrastSlider.slider( "value" ) - 127 ) / 128.0)
             ;
+          if ( !isUpdated ) return requestAnimationFrame(animationFrame);
+
           var filtered = ImageFilters.BrightnessContrastGimp(imagedata, brightness, contrast)
           context.putImageData(filtered, 0, 0);
 
@@ -166,7 +170,7 @@ HTMLWidgets.widget({
                 ctx.stroke();
             })
           }
-
+          isUpdated = false;
           requestAnimationFrame(animationFrame);
         };
         animationFrame();

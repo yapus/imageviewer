@@ -16,17 +16,47 @@
     cursor: crosshair;
     flex-grow: 0;
     flex-shrink: 0;
+    margin-left: 128px;
+  }
+  svg {
+    path { fill: none; }
+    g {
+      text {
+        font-size: 9pt;
+      }
+    }
+    g.axis {
+      g.tick {
+        color: black;
+
+        line {
+          stroke: #000;
+        }
+      }
+      path { stroke: #000; }
+    }
+    g.grid {
+      line {
+        stroke: #888;
+      }
+    }
   }
   #barchartY {
-    border: 1px solid red;
+    /*border: 1px solid red;*/
     flex-grow: 0;
     flex-shrink: 0;
+    transform: rotate(-90deg);
+    transform-origin: 100% 0%;
+    position: absolute;
+    left: -607px;
+    top: -92px;
+
   }
   #barchartX {
-    border: 1px solid red;
+    /*border: 1px solid red;*/
     display: block;
     /*margin-left: 134px;*/
-    margin-left: 5px;
+    /*margin-left: 5px;*/
   }
   #sliders {
     display: table-cell;

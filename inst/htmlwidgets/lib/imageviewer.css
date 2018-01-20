@@ -12,16 +12,34 @@
     margin-right: 5px;
     cursor: crosshair;
     flex-grow: 0;
-    flex-shrink: 0; }
+    flex-shrink: 0;
+    margin-left: 128px; }
+  .widgetcontainer svg path {
+    fill: none; }
+  .widgetcontainer svg g text {
+    font-size: 9pt; }
+  .widgetcontainer svg g.axis g.tick {
+    color: black; }
+    .widgetcontainer svg g.axis g.tick line {
+      stroke: #000; }
+  .widgetcontainer svg g.axis path {
+    stroke: #000; }
+  .widgetcontainer svg g.grid line {
+    stroke: #888; }
   .widgetcontainer #barchartY {
-    border: 1px solid red;
+    /*border: 1px solid red;*/
     flex-grow: 0;
-    flex-shrink: 0; }
+    flex-shrink: 0;
+    transform: rotate(-90deg);
+    transform-origin: 100% 0%;
+    position: absolute;
+    left: -607px;
+    top: -92px; }
   .widgetcontainer #barchartX {
-    border: 1px solid red;
+    /*border: 1px solid red;*/
     display: block;
     /*margin-left: 134px;*/
-    margin-left: 5px; }
+    /*margin-left: 5px;*/ }
   .widgetcontainer #sliders {
     display: table-cell;
     height: auto;

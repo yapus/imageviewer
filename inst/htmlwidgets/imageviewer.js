@@ -49,21 +49,17 @@ HTMLWidgets.widget({
           ;
 
         var id = el.id;
-        // el.innerHtml = widgetInnerHtml(id, imageWidth, imageHeight);
-        $(el).append($(widgetInnerHtml(id, imageWidth, imageHeight)));
-        // return;
-        // var canvas = document.createElement('canvas');
+        $(el).append( $(widgetInnerHtml(id, imageWidth, imageHeight)) );
+
         var canvas = document.getElementById('image');
         var context = canvas.getContext("2d");
 
         var barcharts = { X: { canvas: $(el).find('#barchartX')[0] }
                         , Y: { canvas: $(el).find('#barchartY')[0] }
                         }
-        Object.keys(barcharts).forEach( k => {
-          barcharts[k].ctx = barcharts[k].canvas.getContext("2d");
-          // barcharts[k].ctx.fillStyle = 'red'; barcharts[k].ctx.fillRect(0, 10, 100, 100);
-        });
-        // var barchartContexts = Object.keys(barcharts).map( k => barcharts[k].canvas.getContext("2d") );
+        Object.keys(barcharts).forEach( k =>
+          barcharts[k].ctx = barcharts[k].canvas.getContext("2d")
+        );
 
         var imagedata = context.createImageData(imageWidth, imageHeight);
         normdata.forEach( (c, i) => {
@@ -83,9 +79,11 @@ HTMLWidgets.widget({
           slide: refreshFilter,
           change: refreshFilter
         });
+        var brightnessSlider = $(el).find( `#brightness_${id}` )
+          , contrastSlider   = $(el).find( `#contrast_${id}`   );
 
-        $(el).find( `#brightness_${id}` ).slider( "value", 123 );
-        $(el).find( `#contrast_${id}`   ).slider( "value", 245 );
+        brightnessSlider.slider( "value", 123 );
+        contrastSlider.slider( "value", 245 );
 
 
         var canvasMousePos = { x: NaN, y: NaN, in: false };
@@ -97,13 +95,18 @@ HTMLWidgets.widget({
           inputs[0].value = canvasMousePos.x;
           inputs[1].value = canvasMousePos.y;
           inputs[2].value = data[ imageWidth * canvasMousePos.y + canvasMousePos.x ];
-          // var message = 'Mouse position: ' + canvasMousePos.x + ',' + canvasMousePos.y;
-          // console.log(message);
         }, false);
+        canvas.addEventListener('wheel', evt => {
+          evt.stopImmediatePropagation();
+          if (evt.altKey)
+            brightnessSlider.slider( "value", brightnessSlider.slider( "value" ) + evt.deltaY );
+          if (evt.shiftKey)
+            contrastSlider.slider( "value", contrastSlider.slider( "value" ) + evt.deltaY );
+        })
 
         var animationFrame = function() {
-          var brightness = Math.floor(100 * ($( `#brightness_${id}` ).slider( "value" ) - 127 ) / 128.0)
-            , contrast   = Math.floor(100 * ($( `#contrast_${id}`   ).slider( "value" ) - 127 ) / 128.0)
+          var brightness = Math.floor(100 * (brightnessSlider.slider( "value" ) - 127 ) / 128.0)
+            , contrast   = Math.floor(100 * (contrastSlider.slider( "value" ) - 127 ) / 128.0)
             ;
           var filtered = ImageFilters.BrightnessContrastGimp(imagedata, brightness, contrast)
           context.putImageData(filtered, 0, 0);

@@ -44,8 +44,8 @@ HTMLWidgets.widget({
           , isBarChart  = ('bar' === settings.chart)
           , maxValue    = data.reduce((a, b) => (a < b ? b : a), 0)
           , normdata    = data.map((d, i) => Math.floor(255.0 * d / maxValue))
-          , imageWidth  = data.width  || 512
-          , imageHeight = data.height || 512
+          , imageWidth  = data.width  || width
+          , imageHeight = data.height || height
           ;
 
         var id = el.id;

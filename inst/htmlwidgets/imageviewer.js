@@ -6,16 +6,21 @@ HTMLWidgets.widget({
 
   factory: function(el, width, height) {
 
-    var barchartSize = 128;
+    var barchartSize = 128
+      , barchartExtraWidth = 64
+      , barchartExtraHeight = 16;
+
+
     var widgetInnerHtml = (id, w, h) => {
-      return `<div class="widgetcontainer"><div class="row row1" style="height:${h}px"><!--
-           --><svg id="barchartY" width="${barchartSize}" height="${h}"></svg><!--
-           --><canvas id="image" width="${w}" height="${h}"></canvas><div id="sliders"><!--
+      return `<div class="widgetcontainer"><!--
+           --><div class="row row1"><!--
+           --><svg id="barchartY" width="${barchartSize}" height="${h}" style="left:-${h+barchartExtraWidth-8}"></svg><!--
+           --><canvas id="image" width="${w}" height="${h}" style="margin-left:${barchartSize + barchartExtraHeight}px"></canvas><div id="sliders"><!--
            --><div id="brightness_${id}" class="brightness slider"></div><!--
            --><div id="contrast_${id}" class="contrast slider"></div><!--
-           --></div><div class="lineend"></div></div><!--
+           --></div></div><!--
            --><div class="row row2"><!--
-           --><svg id="barchartX" width="${w+64}" height="${barchartSize}"></svg><!--
+           --><svg id="barchartX" width="${w+barchartExtraWidth}" height="${barchartSize}"></svg><!--
            --><div id="outputValues"><!--
            --><ul><li>X:</li><input type="text" size="10"/></ul><!--
            --><ul><li>Y:</li><input type="text" size="10"/></ul><!--
@@ -47,17 +52,16 @@ HTMLWidgets.widget({
       , rotate = '0deg'
     } = {}) => {
 
+      var imageWidth  = width + barchartExtraWidth
+        , imageHeight = height + barchartExtraHeight
+        ;
+
       var chart = (selection) => {
         selection.each(function(datasets) {
             //
             // Create the plot.
             //
-            // var margin = {top: 20, right: 80, bottom: 30, left: 50},
-            // var margin = {top: 0, right: 100, bottom: 0, left: 0},
-            // var margin = {top: 0, right: 0, bottom: 0, left: 0},
-            // var margin = {top: 0, right: 100, bottom: 0, left: 0},
-            // var margin = {top: 0, right: 0, bottom: 0, left: 64},
-            var margin = {top: 0, right: 0, bottom: 16, left: 64},
+            var margin = {top: 0, right: 0, bottom: barchartExtraHeight, left: barchartExtraWidth},
                 innerwidth = width - margin.left - margin.right,
                 innerheight = height - margin.top - margin.bottom ;
 
@@ -76,14 +80,12 @@ HTMLWidgets.widget({
 
             var x_axis = d3.svg.axis()
                 .scale(x_scale)
-                // .scale( d3.scale.linear().range([ d3.min(datasets, d => d3.min(d.x) ), d3.max(datasets, d => d3.max(d.x) ) ]) )
                 .ticks( Math.floor(imageWidth / 100) )
                 .tickSize(-5)
                 .orient("bottom") ;
 
             var y_axis = d3.svg.axis()
                 .scale(y_scale)
-                // .scale( d3.scale.linear().range([ d3.min(datasets, d => d3.min(d.y) ), d3.max(datasets, d => d3.max(d.y) ) ]) )
                 .ticks(3, "e")
                 .tickSize(-5)
                 .orient("left");
@@ -214,7 +216,6 @@ HTMLWidgets.widget({
     return {
 
       renderValue: function(x) {
-
         var data        = ( null != x.data[0] && x.data[0].hasOwnProperty('length') )
                         ? [].concat(... (x.data || []) )
                         : x.data
@@ -222,15 +223,15 @@ HTMLWidgets.widget({
           , isBarChart  = ('bar' === settings.chart)
           , maxValue    = data.reduce((a, b) => (a < b ? b : a), 0)
           , normdata    = data.map((d, i) => Math.floor(255.0 * d / maxValue))
-          , imageWidth  = data.width  || width
-          , imageHeight = data.height || height
+          , imageWidth  = x.data[0].length  // || width
+          , imageHeight = x.data.length     // || height
           ;
 
-        var xy_chart_wide = d3_xy_chart({ width: imageWidth + 64, height: barchartSize + 16, xlabel: '', ylabel: '' });
-        var xy_chart_tall = d3_xy_chart({ width: imageWidth + 64, height: barchartSize + 16, xlabel: '', ylabel: '' });
+        var xy_chart_wide = d3_xy_chart({ width: width + 64, height: barchartSize + 16, xlabel: '', ylabel: '' });
+        var xy_chart_tall = d3_xy_chart({ width: width + 64, height: barchartSize + 16, xlabel: '', ylabel: '' });
 
         var id = el.id;
-        $(el).append( $(widgetInnerHtml(id, imageWidth, imageHeight)) );
+        $(el).append( $(widgetInnerHtml(id, width, height)) );
 
         var canvas = document.getElementById('image');
         var context = canvas.getContext("2d");
@@ -294,7 +295,12 @@ HTMLWidgets.widget({
             ;
           if ( !isUpdated ) return requestAnimationFrame(animationFrame);
 
-          var filtered = ImageFilters.BrightnessContrastGimp(imagedata, brightness, contrast)
+          var filtered = ImageFilters.Resize(
+              ImageFilters.BrightnessContrastGimp(imagedata, brightness, contrast)
+            , width
+            , height
+            )
+
           context.putImageData(filtered, 0, 0);
 
           if ( canvasMousePos.in ) {

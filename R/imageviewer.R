@@ -16,8 +16,6 @@ imageviewer <- function(data, width = NULL, height = NULL, elementId = NULL, opt
   # forward options using x
   x = list(
     data = data,
-    width = width,
-    height = height,
     options = options
   )
 

@@ -4,29 +4,56 @@ HTMLWidgets.widget({
 
   type: 'output',
 
-  factory: function(el, width, height) {
+  factory: function(el, widgetWidth, widgetHeight) {
+    var barchartSize        = 128
+      , barchartExtraWidth  = 64
+      , barchartExtraHeight = 16
+      , outputValuesWidth   = 128
+      , zoomIntensity       = 0.2
+      , zoomSensitivity     = 1 / 120.0
+      , width
+      , height
+      ;
 
-    var barchartSize = 128
-      , barchartExtraWidth = 64
-      , barchartExtraHeight = 16;
+    if (null != widgetWidth && null != widgetHeight) {
+      width  = widgetWidth;
+      height = widgetHeight;
+    } else {
+      var widgetSize = el.offsetWidth < el.offsetHeight ? el.offsetHeight : el.offsetWidth
+      var canvasSize = widgetSize - barchartSize - barchartExtraWidth - outputValuesWidth
+      console.log(`el.offsetWidth=${el.offsetWidth}; el.offsetHeight=${el.offsetHeight}`)
+      console.log(`widgetSize=${widgetSize}; canvasSize=${canvasSize}`)
 
+      width  = null != widgetWidth
+             ? widgetWidth
+             : canvasSize
+      height = null != widgetHeight
+             ? widgetHeight
+             : canvasSize
+    }
 
-    var widgetInnerHtml = (id, w, h) => {
+    var widgetInnerHtml = ( id, w, h ) => {
       return `<div class="widgetcontainer"><!--
            --><div class="row row1"><!--
-           --><svg id="barchartY" width="${barchartSize}" height="${h}" style="left:-${h+barchartExtraWidth-8}"></svg><!--
-           --><canvas id="image" width="${w}" height="${h}" style="margin-left:${barchartSize + barchartExtraHeight}px"></canvas><div id="sliders"><!--
-           --><div id="brightness_${id}" class="brightness slider"></div><!--
-           --><div id="contrast_${id}" class="contrast slider"></div><!--
-           --></div></div><!--
-           --><div class="row row2"><!--
-           --><svg id="barchartX" width="${w+barchartExtraWidth}" height="${barchartSize}"></svg><!--
-           --><div id="outputValues"><!--
-           --><ul><li>X:</li><input type="text" size="10"/></ul><!--
-           --><ul><li>Y:</li><input type="text" size="10"/></ul><!--
-           --><ul><li>VAL:</li><input type="text" size="10"/></ul><!--
+             --><svg id="barchartX" width="${barchartSize}" height="${h}" style="left:-${h+barchartExtraWidth-8}px;margin-right:-${h + barchartExtraWidth - barchartSize - barchartExtraHeight}px"></svg><!--
+             --><canvas id="image" width="${w}" height="${h}"></canvas><!--
+             --><div id="sliders"><!--
+               --><div id="brightness_${id}" class="brightness slider"></div><!--
+               --><div id="contrast_${id}" class="contrast slider"></div><!--
+             --></div><!--
+             --><div class="rowend"></div><!--
            --></div><!--
-           --></div></div>`;
+           --><div class="row row2"><!--
+             --><svg id="barchartY" width="${w+barchartExtraWidth}" height="${barchartSize}"></svg><!--
+             --><div id="outputValues"><!--
+               --><ul><li>X:</li><input type="text" size="10"/></ul><!--
+               --><ul><li>Y:</li><input type="text" size="10"/></ul><!--
+               --><ul><li>VAL:</li><input type="text" size="10"/></ul><!--
+             --></div><!--
+           --></div><!--
+           --></div>`
+           .replace(/<!--.*?-->/g, '')
+           ;
     };
     el.style.whiteSpace = 'nowrap';
 
@@ -212,26 +239,49 @@ HTMLWidgets.widget({
       return chart;
     }
 
+    var transposeArray = array => array[0].map( (col, i) => array.map( row => row[i] ) )
 
     return {
 
       renderValue: function(x) {
-        var data        = ( null != x.data[0] && x.data[0].hasOwnProperty('length') )
-                        ? [].concat(... (x.data || []) )
-                        : x.data
-          , settings    = x.settings || {}
-          , isBarChart  = ('bar' === settings.chart)
-          , maxValue    = data.reduce((a, b) => (a < b ? b : a), 0)
-          , normdata    = data.map((d, i) => Math.floor(255.0 * d / maxValue))
-          , imageWidth  = x.data[0].length  // || width
-          , imageHeight = x.data.length     // || height
+        var data         = ( null != x.data[0] && x.data[0].hasOwnProperty('length') )
+                         ? [].concat(...transposeArray(x.data || []))
+                         : x.data
+          , settings     = x.settings || {}
+          , isBarChart   = ('bar' === settings.chart)
+          , maxValue     = data.reduce((a, b) => (a < b ? b : a), 0)
+          , normdata     = data.map((d, i) => Math.floor(255.0 * d / maxValue))
+          , imageWidth   = x.data.length     // || width
+          , imageHeight  = x.data[0].length  // || height
+          // , imageWidth   = x.data[0].length     // || width
+          // , imageHeight  = x.data.length        // || height
+          , canvasWidth  = imageWidth  < width  ? imageWidth  : width
+          , canvasHeight = imageHeight < height ? imageHeight : height
           ;
+        // proportional scaling
+        if ( canvasWidth == imageWidth && canvasHeight < imageHeight ){
+          canvasWidth = Math.round( 1.0 * canvasHeight * imageWidth / imageHeight );
+        } else if ( canvasWidth < imageWidth && canvasHeight == imageHeight ) {
+          canvasHeight = Math.round( 1.0 * canvasWidth * imageHeight / imageWidth );
+        }
+        console.log(`imageWidth=${imageWidth}; imageHeight=${imageHeight}`);
+        console.log(`canvasWidth=${canvasWidth}; canvasHeight=${canvasHeight}`);
 
-        var xy_chart_wide = d3_xy_chart({ width: width + 64, height: barchartSize + 16, xlabel: '', ylabel: '' });
-        var xy_chart_tall = d3_xy_chart({ width: width + 64, height: barchartSize + 16, xlabel: '', ylabel: '' });
+        var xy_chart_wide = d3_xy_chart({ width : canvasWidth + barchartExtraWidth
+                                        , height: barchartSize + barchartExtraHeight
+                                        , xlabel: ''
+                                        , ylabel: ''
+                                        });
+        var xy_chart_tall = d3_xy_chart({ width : canvasHeight + barchartExtraWidth
+                                        , height: barchartSize + barchartExtraHeight
+                                        , xlabel: ''
+                                        , ylabel: ''
+                                        });
 
         var id = el.id;
-        $(el).append( $(widgetInnerHtml(id, width, height)) );
+        $(el).append($(
+          widgetInnerHtml( id, canvasWidth, canvasHeight )
+        ));
 
         var canvas = document.getElementById('image');
         var context = canvas.getContext("2d");
@@ -247,8 +297,6 @@ HTMLWidgets.widget({
           imagedata.data[i * 4 + 2] = c;
           imagedata.data[i * 4 + 3] = 255;
         })
-
-        context.putImageData(imagedata, 0, 0);
 
         var isUpdated = false;
         var refreshFilter = (event, ui) => {
@@ -269,16 +317,41 @@ HTMLWidgets.widget({
         brightnessSlider.slider( "value", 123 );
         contrastSlider.slider( "value", 245 );
 
+        var canvasMousePos = { x: NaN, y: NaN, in: true };
+        var viewport = { x: 0, y: 0, w: imageWidth, h: imageHeight };
+        var realCursorPos = ({ x, y }) => {
+          return {
+              x : viewport.x + Math.floor(1.0 * x * viewport.w / canvasWidth )
+            , y : viewport.y + Math.floor(1.0 * y * viewport.h / canvasHeight)
+          };
+        };
 
-        var canvasMousePos = { x: NaN, y: NaN, in: false };
+        var zoomViewport = (zoomDelta) => {
+          var wheel = zoomDelta * zoomSensitivity;
+          var zoom = Math.exp(wheel*zoomIntensity);
+          var scale = imageWidth / viewport.w;
+          if (scale > 8 && zoom > 1.0) return;
+
+          viewport.x -= Math.round(canvasMousePos.x/(scale*zoom) - canvasMousePos.x/scale);
+          viewport.y -= Math.round(canvasMousePos.y/(scale*zoom) - canvasMousePos.y/scale);
+          viewport.w  = Math.round(viewport.w/zoom);
+          viewport.h  = Math.round(viewport.h/zoom);
+          if ( imageWidth  < viewport.w ) viewport.w = imageWidth;
+          if ( imageHeight < viewport.h ) viewport.h = imageHeight;
+          if ( 0           > viewport.x ) viewport.x = 0;
+          if ( 0           > viewport.y ) viewport.y = 0;
+          isUpdated = canvasMousePos.in = true;
+        }
+
         var inputs = $(el).find('#outputValues input');
         canvas.addEventListener('mouseenter', evt => { canvasMousePos.in = true;  isUpdated = true; })
         canvas.addEventListener('mouseleave', evt => { canvasMousePos.in = false; isUpdated = true; })
         canvas.addEventListener('mousemove', evt => {
           Object.assign(canvasMousePos, getMousePos(canvas, evt));
-          inputs[0].value = canvasMousePos.x;
-          inputs[1].value = canvasMousePos.y;
-          inputs[2].value = data[ imageWidth * canvasMousePos.y + canvasMousePos.x ];
+          var { x, y } = realCursorPos( canvasMousePos );
+          inputs[0].value = x;
+          inputs[1].value = y;
+          inputs[2].value = data[ imageWidth * y + x ];
           isUpdated = true;
         }, false);
         canvas.addEventListener('wheel', evt => {
@@ -287,6 +360,9 @@ HTMLWidgets.widget({
             brightnessSlider.slider( "value", brightnessSlider.slider( "value" ) + evt.deltaY );
           if (evt.shiftKey)
             contrastSlider.slider( "value", contrastSlider.slider( "value" ) + evt.deltaY );
+          if (evt.ctrlKey && !evt.altKey && !evt.shiftKey) {
+            zoomViewport(evt.deltaY);
+          }
         })
 
         var animationFrame = function() {
@@ -296,9 +372,13 @@ HTMLWidgets.widget({
           if ( !isUpdated ) return requestAnimationFrame(animationFrame);
 
           var filtered = ImageFilters.Resize(
-              ImageFilters.BrightnessContrastGimp(imagedata, brightness, contrast)
-            , width
-            , height
+              ImageFilters.CropBuiltin(
+                ImageFilters.BrightnessContrastGimp(imagedata, brightness, contrast)
+              , viewport.x, viewport.y
+              , viewport.w, viewport.h
+              )
+            , canvasWidth
+            , canvasHeight
             )
 
           context.putImageData(filtered, 0, 0);
@@ -308,25 +388,29 @@ HTMLWidgets.widget({
             context.fillStyle = 'red';
             context.fillRect(0, canvasMousePos.y, imageWidth, 1);
             context.fillRect(canvasMousePos.x, 0, 1, imageHeight);
-
+            const { x, y } = realCursorPos(canvasMousePos)
             // barcharts
             Object.keys(barcharts).forEach(k => {
               var svg = barcharts[k].svg;
-              var line = data.filter((v, i) => (
-                  ('X' === k)
-                  ? Math.floor(i / imageWidth) == canvasMousePos.y
-                  : (i % imageWidth) == canvasMousePos.x
-                )); // .map(v => v / 2);
-              if ('X' === k) {
+              var line = data
+                         .filter((v, i) => ( ('Y' === k)
+                                             ? Math.floor(i / imageWidth) == y
+                                             : (i % imageWidth) == x
+                                            ))
+                         .slice(...(('Y' === k)
+                                   ? [ viewport.x, viewport.x + viewport.w ]
+                                   : [ viewport.y, viewport.y + viewport.h ]) )
+                         ;
+              if ('Y' === k) {
                 svg.data([[{
-                  label: '' // `x = ${canvasMousePos.x}`
-                , x    : Array.from({ length: imageWidth }, (_, i) => i)
+                  label: '' // `y = ${y}`
+                , x    : Array.from(line, (_, i) => viewport.x + i)
                 , y    : line
                 }]]).call(xy_chart_wide);
               } else {
                 svg.data([[{
-                  label: '' // `x = ${canvasMousePos.x}`
-                , x    : Array.from({ length: imageWidth }, (_, i) => i)
+                  label: '' // `x = ${x}`
+                , x    : Array.from(line, (_, i) => viewport.y + i)
                 , y    : line.reverse()
                 }]]).call(xy_chart_tall);
               }

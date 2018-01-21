@@ -15,12 +15,12 @@ HTMLWidgets.widget({
            --><div id="contrast_${id}" class="contrast slider"></div><!--
            --></div><div class="lineend"></div></div><!--
            --><div class="row row2"><!--
+           --><svg id="barchartX" width="${w+64}" height="${barchartSize}"></svg><!--
            --><div id="outputValues"><!--
            --><ul><li>X:</li><input type="text" size="10"/></ul><!--
            --><ul><li>Y:</li><input type="text" size="10"/></ul><!--
            --><ul><li>VAL:</li><input type="text" size="10"/></ul><!--
            --></div><!--
-           --><svg id="barchartX" width="${w+100}" height="${barchartSize}"></svg><!--
            --></div></div>`;
     };
     el.style.whiteSpace = 'nowrap';
@@ -55,7 +55,9 @@ HTMLWidgets.widget({
             // var margin = {top: 20, right: 80, bottom: 30, left: 50},
             // var margin = {top: 0, right: 100, bottom: 0, left: 0},
             // var margin = {top: 0, right: 0, bottom: 0, left: 0},
-            var margin = {top: 0, right: 100, bottom: 0, left: 0},
+            // var margin = {top: 0, right: 100, bottom: 0, left: 0},
+            // var margin = {top: 0, right: 0, bottom: 0, left: 64},
+            var margin = {top: 0, right: 0, bottom: 16, left: 64},
                 innerwidth = width - margin.left - margin.right,
                 innerheight = height - margin.top - margin.bottom ;
 
@@ -82,10 +84,10 @@ HTMLWidgets.widget({
             var y_axis = d3.svg.axis()
                 .scale(y_scale)
                 // .scale( d3.scale.linear().range([ d3.min(datasets, d => d3.min(d.y) ), d3.max(datasets, d => d3.max(d.y) ) ]) )
-                // .orient("left") ;
                 .ticks(3, "e")
                 .tickSize(-5)
-                .orient("right") ;
+                .orient("left");
+                // .orient("right") ;
 
             var x_grid = d3.svg.axis()
                 .scale(x_scale)
@@ -97,6 +99,7 @@ HTMLWidgets.widget({
             var y_grid = d3.svg.axis()
                 .scale(y_scale)
                 .orient("left")
+                .ticks(6)
                 .tickSize(-innerwidth)
                 .tickFormat("") ;
 
@@ -110,7 +113,7 @@ HTMLWidgets.widget({
                 .attr("height", height);
 
             selectOrAppend(svg, 'g')
-                .attr("transform", `translate(${margin.left},${margin.top}) rotate(${rotate})`) ;
+                .attr("transform", `translate(${margin.left},${margin.top})`) ;
 
             svg = svg.select("g");
 
@@ -140,7 +143,7 @@ HTMLWidgets.widget({
             selectOrAppend(
               selectOrAppend(svg, 'g.y.axis', 'g')
                 .attr("class", "y axis")
-                .attr("transform", `translate(${innerwidth}, 0)`)
+                // .attr("transform", `translate(${innerwidth}, 0)`)
                 .call(y_axis)
             , "text.label"
             , "text"
@@ -223,8 +226,8 @@ HTMLWidgets.widget({
           , imageHeight = data.height || height
           ;
 
-        var xy_chart_wide = d3_xy_chart({ width: imageWidth + 100, height: barchartSize, xlabel: '', ylabel: '' });
-        var xy_chart_tall = d3_xy_chart({ width: imageWidth + 100, height: barchartSize, xlabel: '', ylabel: '' });
+        var xy_chart_wide = d3_xy_chart({ width: imageWidth + 64, height: barchartSize + 16, xlabel: '', ylabel: '' });
+        var xy_chart_tall = d3_xy_chart({ width: imageWidth + 64, height: barchartSize + 16, xlabel: '', ylabel: '' });
 
         var id = el.id;
         $(el).append( $(widgetInnerHtml(id, imageWidth, imageHeight)) );

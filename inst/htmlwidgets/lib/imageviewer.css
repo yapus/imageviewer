@@ -13,7 +13,7 @@
     cursor: crosshair;
     flex-grow: 0;
     flex-shrink: 0;
-    margin-left: 128px; }
+    margin-left: 144px; }
   .widgetcontainer svg path {
     fill: none; }
   .widgetcontainer svg g text {
@@ -33,12 +33,12 @@
     transform: rotate(-90deg);
     transform-origin: 100% 0%;
     position: absolute;
-    left: -607px;
-    top: -92px; }
+    left: -572px;
+    top: 8px; }
   .widgetcontainer #barchartX {
     /*border: 1px solid red;*/
     display: block;
-    /*margin-left: 134px;*/
+    margin-left: 80px;
     /*margin-left: 5px;*/ }
   .widgetcontainer #sliders {
     display: table-cell;

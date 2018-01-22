@@ -351,7 +351,7 @@ HTMLWidgets.widget({
           var { x, y } = realCursorPos( canvasMousePos );
           inputs[0].value = x;
           inputs[1].value = y;
-          inputs[2].value = data[ imageWidth * y + x ];
+          inputs[2].value = data[ imageWidth * y + x ].toExponential(3);
           isUpdated = true;
         }, false);
         canvas.addEventListener('wheel', evt => {

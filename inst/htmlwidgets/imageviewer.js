@@ -241,18 +241,20 @@ HTMLWidgets.widget({
       const wheel = zoomDelta * zoomSensitivity
           , zoom  = Math.exp(wheel*zoomIntensity)
           , scale = imageWidth / viewport.w
-      if (scale > 8 && zoom > 1.0) return;
+      if (scale > 8 && zoom > 1.0) return true
       const x = isNaN(canvasMousePos.x) ? 0 : canvasMousePos.x
-      const y = isNaN(canvasMousePos.y) ? 0 : canvasMousePos.y;
-      viewport.x -= Math.round(x/(scale*zoom) - x/scale);
-      viewport.y -= Math.round(y/(scale*zoom) - y/scale);
-      viewport.w  = Math.round(viewport.w/zoom);
-      viewport.h  = Math.round(viewport.h/zoom);
-      if ( imageWidth  < viewport.w ) viewport.w = imageWidth;
-      if ( imageHeight < viewport.h ) viewport.h = imageHeight;
-      if ( 0           > viewport.x ) viewport.x = 0;
-      if ( 0           > viewport.y ) viewport.y = 0;
-      isUpdated = canvasMousePos.in = true;
+      const y = isNaN(canvasMousePos.y) ? 0 : canvasMousePos.y
+      viewport.x -= Math.round(x / (scale * zoom) - x / scale)
+      viewport.y -= Math.round(y / (scale * zoom) - y / scale)
+      viewport.w  = Math.round(viewport.w / zoom)
+      viewport.h  = Math.round(viewport.h / zoom)
+      if ( imageWidth  < viewport.w              ) viewport.w = imageWidth
+      if ( imageHeight < viewport.h              ) viewport.h = imageHeight
+      if ( 0           > viewport.x              ) viewport.x = 0
+      if ( 0           > viewport.y              ) viewport.y = 0
+      if ( imageWidth  < viewport.x + viewport.w ) viewport.x = 0
+      if ( imageHeight < viewport.y + viewport.h ) viewport.y = 0
+      return (isUpdated = canvasMousePos.in = true)
     }
 
     const renderValue = function(x) {

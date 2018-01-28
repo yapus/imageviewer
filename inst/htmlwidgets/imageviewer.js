@@ -254,10 +254,10 @@ HTMLWidgets.widget({
           , normdata     = data.map((d, i) => Math.floor(255.0 * d / maxValue))
           , imageWidth   = x.data.length     // || width
           , imageHeight  = x.data[0].length  // || height
-          // , imageWidth   = x.data[0].length     // || width
-          // , imageHeight  = x.data.length        // || height
-          , canvasWidth  = imageWidth  < width  ? imageWidth  : width
-          , canvasHeight = imageHeight < height ? imageHeight : height
+          , offsetWidth  = 0 < el.offsetWidth  ? el.offsetWidth  : imageWidth
+          , offsetHeight = 0 < el.offsetHeight ? el.offsetHeight : imageHeight
+          , canvasWidth  = offsetWidth - barchartSize - barchartExtraWidth - outputValuesWidth
+          , canvasHeight = offsetHeight - barchartSize - barchartExtraHeight
           , initialBrightness = isNaN(parseFloat(settings.brightness, 10)) ? 0.03 : parseFloat(settings.brightness, 10)
           , initialContrast   = isNaN(parseFloat(settings.contrast, 10))   ? 0.95 : parseFloat(settings.contrast,   10)
           ;
@@ -266,6 +266,8 @@ HTMLWidgets.widget({
           canvasWidth = Math.round( 1.0 * canvasHeight * imageWidth / imageHeight );
         } else if ( canvasWidth < imageWidth && canvasHeight == imageHeight ) {
           canvasHeight = Math.round( 1.0 * canvasWidth * imageHeight / imageWidth );
+        } else if ( canvasHeight < imageHeight && canvasWidth > imageWidth ) {
+          canvasWidth = Math.round( 1.0 * canvasHeight * imageWidth / imageHeight );
         }
         console.log(`imageWidth=${imageWidth}; imageHeight=${imageHeight}`);
         console.log(`canvasWidth=${canvasWidth}; canvasHeight=${canvasHeight}`);

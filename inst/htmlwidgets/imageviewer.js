@@ -11,26 +11,7 @@ HTMLWidgets.widget({
       , outputValuesWidth   = 128
       , zoomIntensity       = 0.2
       , zoomSensitivity     = 1 / 120.0
-      , width
-      , height
       ;
-
-    if (null != widgetWidth && null != widgetHeight) {
-      width  = widgetWidth;
-      height = widgetHeight;
-    } else {
-      var widgetSize = el.offsetWidth < el.offsetHeight ? el.offsetHeight : el.offsetWidth
-      var canvasSize = widgetSize - barchartSize - barchartExtraWidth - outputValuesWidth
-      console.log(`el.offsetWidth=${el.offsetWidth}; el.offsetHeight=${el.offsetHeight}`)
-      console.log(`widgetSize=${widgetSize}; canvasSize=${canvasSize}`)
-
-      width  = null != widgetWidth
-             ? widgetWidth
-             : canvasSize
-      height = null != widgetHeight
-             ? widgetHeight
-             : canvasSize
-    }
 
     var widgetInnerHtml = ( id, w, h ) => {
       return `<div class="widgetcontainer"><!--
@@ -72,11 +53,13 @@ HTMLWidgets.widget({
             : c
     }
 
+    var transposeArray = array => array[0].map( (col, i) => array.map( row => row[i] ) )
+
     var d3_xy_chart = ({
-        width = 640
+        width  = 640
       , height = 480
-      , xlabel = "X Axis Label"
-      , ylabel = "Y Axis Label"
+      , xlabel = ''
+      , ylabel = ''
       , rotate = '0deg'
     } = {}) => {
 
@@ -216,12 +199,14 @@ HTMLWidgets.widget({
       chart.width = (value) => {
           if (!arguments.length) return width;
           width = value;
+          imageWidth  = width + barchartExtraWidth;
           return chart;
       }
 
       chart.height = (value) => {
           if (!arguments.length) return height;
           height = value;
+          imageHeight = height + barchartExtraHeight;
           return chart;
       }
 
@@ -240,48 +225,72 @@ HTMLWidgets.widget({
       return chart;
     }
 
-    var transposeArray = array => array[0].map( (col, i) => array.map( row => row[i] ) )
+    var isUpdated = false;
+    var wasResized = false;
+    var imageWidth, imageHeight, canvasWidth, canvasHeight;
+    var viewport = { x: 0, y: 0, w: 0, h: 0 };
+    var xy_chart_wide, xy_chart_tall;
+    var canvasMousePos = { x: NaN
+                         , y: NaN
+                         , in: true
+                         , down: { x: NaN, y: NaN }
+                         , click: false
+                         };
 
-    return {
+    var zoomViewport = (zoomDelta) => {
+      const wheel = zoomDelta * zoomSensitivity
+          , zoom  = Math.exp(wheel*zoomIntensity)
+          , scale = imageWidth / viewport.w
+      if (scale > 8 && zoom > 1.0) return;
+      const x = isNaN(canvasMousePos.x) ? 0 : canvasMousePos.x
+      const y = isNaN(canvasMousePos.y) ? 0 : canvasMousePos.y;
+      viewport.x -= Math.round(x/(scale*zoom) - x/scale);
+      viewport.y -= Math.round(y/(scale*zoom) - y/scale);
+      viewport.w  = Math.round(viewport.w/zoom);
+      viewport.h  = Math.round(viewport.h/zoom);
+      if ( imageWidth  < viewport.w ) viewport.w = imageWidth;
+      if ( imageHeight < viewport.h ) viewport.h = imageHeight;
+      if ( 0           > viewport.x ) viewport.x = 0;
+      if ( 0           > viewport.y ) viewport.y = 0;
+      isUpdated = canvasMousePos.in = true;
+    }
 
-      renderValue: function(x) {
+    const renderValue = function(x) {
         var data         = ( null != x.data[0] && x.data[0].hasOwnProperty('length') )
                          ? [].concat(...transposeArray(x.data || []))
                          : x.data
           , settings     = x.settings || {}
-          , isBarChart   = ('bar' === settings.chart)
+          // , isBarChart   = ('bar' === settings.chart)
           , maxValue     = data.reduce((a, b) => (a < b ? b : a), 0)
           , normdata     = data.map((d, i) => Math.floor(255.0 * d / maxValue))
-          , imageWidth   = x.data.length     // || width
-          , imageHeight  = x.data[0].length  // || height
-          , offsetWidth  = 0 < el.offsetWidth  ? el.offsetWidth  : imageWidth
-          , offsetHeight = 0 < el.offsetHeight ? el.offsetHeight : imageHeight
-          , canvasWidth  = offsetWidth - barchartSize - barchartExtraWidth - outputValuesWidth
-          , canvasHeight = offsetHeight - barchartSize - barchartExtraHeight
+          ;
+        imageWidth       = x.data.length     // || width
+        imageHeight      = x.data[0].length  // || height
+
+        var offsetWidth  = 0 < el.offsetWidth  ? el.offsetWidth  : imageWidth
+          , offsetHeight = 0 < el.offsetHeight ? el.offsetHeight : (window.innerHeight || imageHeight)
           , initialBrightness = isNaN(parseFloat(settings.brightness, 10)) ? 0.03 : parseFloat(settings.brightness, 10)
           , initialContrast   = isNaN(parseFloat(settings.contrast, 10))   ? 0.95 : parseFloat(settings.contrast,   10)
           ;
+        canvasWidth  = offsetWidth  - barchartSize - barchartExtraWidth - outputValuesWidth
+        canvasHeight = offsetHeight - barchartSize - barchartExtraHeight
         // proportional scaling
-        if ( canvasWidth == imageWidth && canvasHeight < imageHeight ){
+        if ( canvasWidth  < (imageWidth   / 8) ) canvasWidth  = imageWidth  / 8;
+        if ( canvasHeight < (canvasHeight / 8) ) canvasHeight = imageHeight / 8;
+        if ( (canvasWidth / imageWidth) > (canvasHeight / imageHeight) ) {
           canvasWidth = Math.round( 1.0 * canvasHeight * imageWidth / imageHeight );
-        } else if ( canvasWidth < imageWidth && canvasHeight == imageHeight ) {
+        } else if ( (canvasWidth / imageWidth) < (canvasHeight / imageHeight) ) {
           canvasHeight = Math.round( 1.0 * canvasWidth * imageHeight / imageWidth );
-        } else if ( canvasHeight < imageHeight && canvasWidth > imageWidth ) {
-          canvasWidth = Math.round( 1.0 * canvasHeight * imageWidth / imageHeight );
         }
-        console.log(`imageWidth=${imageWidth}; imageHeight=${imageHeight}`);
-        console.log(`canvasWidth=${canvasWidth}; canvasHeight=${canvasHeight}`);
+        // console.log(`imageWidth=${imageWidth}; imageHeight=${imageHeight}`);
+        // console.log(`canvasWidth=${canvasWidth}; canvasHeight=${canvasHeight}`);
 
-        var xy_chart_wide = d3_xy_chart({ width : canvasWidth + barchartExtraWidth
-                                        , height: barchartSize + barchartExtraHeight
-                                        , xlabel: ''
-                                        , ylabel: ''
-                                        });
-        var xy_chart_tall = d3_xy_chart({ width : canvasHeight + barchartExtraWidth
-                                        , height: barchartSize + barchartExtraHeight
-                                        , xlabel: ''
-                                        , ylabel: ''
-                                        });
+        xy_chart_wide = d3_xy_chart({ width : canvasWidth + barchartExtraWidth
+                                    , height: barchartSize + barchartExtraHeight
+                                    });
+        xy_chart_tall = d3_xy_chart({ width : canvasHeight + barchartExtraWidth
+                                    , height: barchartSize + barchartExtraHeight
+                                    });
 
         var id = el.id;
         $(el).append($(
@@ -303,7 +312,6 @@ HTMLWidgets.widget({
           imagedata.data[i * 4 + 3] = 255;
         })
 
-        var isUpdated = false;
         var refreshFilter = (event, ui) => {
           $(ui.handle.parentNode).find('.ui-slider-handle').text( Math.floor(100 * ui.value / 256.0) + '%');
           isUpdated = true;
@@ -321,6 +329,7 @@ HTMLWidgets.widget({
 
         brightnessSlider.slider( "value", Math.round(256.0 * initialBrightness) );
         contrastSlider.slider( "value",   Math.round(256.0 * initialContrast  ) );
+        $('#sliders').hide();
 
         var canvasMousePos = { x: NaN
                              , y: NaN
@@ -328,7 +337,7 @@ HTMLWidgets.widget({
                              , down: { x: NaN, y: NaN }
                              , click: false
                              };
-        var viewport = { x: 0, y: 0, w: imageWidth, h: imageHeight };
+        Object.assign(viewport, { x: 0, y: 0, w: imageWidth, h: imageHeight });
         var realCursorPos = ({ x, y }) => {
           return {
               x : viewport.x + Math.floor(1.0 * x * viewport.w / canvasWidth )
@@ -336,31 +345,15 @@ HTMLWidgets.widget({
           };
         };
 
-        var zoomViewport = (zoomDelta) => {
-          var wheel = zoomDelta * zoomSensitivity;
-          var zoom = Math.exp(wheel*zoomIntensity);
-          var scale = imageWidth / viewport.w;
-          if (scale > 8 && zoom > 1.0) return;
-
-          viewport.x -= Math.round(canvasMousePos.x/(scale*zoom) - canvasMousePos.x/scale);
-          viewport.y -= Math.round(canvasMousePos.y/(scale*zoom) - canvasMousePos.y/scale);
-          viewport.w  = Math.round(viewport.w/zoom);
-          viewport.h  = Math.round(viewport.h/zoom);
-          if ( imageWidth  < viewport.w ) viewport.w = imageWidth;
-          if ( imageHeight < viewport.h ) viewport.h = imageHeight;
-          if ( 0           > viewport.x ) viewport.x = 0;
-          if ( 0           > viewport.y ) viewport.y = 0;
-          isUpdated = canvasMousePos.in = true;
-        }
-
         var inputs = $(el).find('#outputValues input');
         canvas.addEventListener('mouseenter', evt => { canvasMousePos.in = true;  isUpdated = true; })
         canvas.addEventListener('mouseleave', evt => { canvasMousePos.in = false; isUpdated = true; })
         canvas.addEventListener('mousedown',  evt => { canvasMousePos.click = true; Object.assign(canvasMousePos.down, getMousePos(canvas, evt)); })
         canvas.addEventListener('mouseup',    evt => { canvasMousePos.click = false; canvasMousePos.down = { x: NaN, y: NaN }; })
-        canvas.addEventListener('mousemove', evt => {
+        canvas.addEventListener('mousemove',  evt => {
           Object.assign(canvasMousePos, getMousePos(canvas, evt));
           var { x, y } = realCursorPos( canvasMousePos );
+          if ( 0 > x || imageWidth < x || 0 > y || imageHeight < y ) return (isUpdated = true);
           inputs[0].value = x + 1;
           inputs[1].value = y + 1;
           inputs[2].value = null != data[ imageWidth * y + x ]
@@ -412,11 +405,11 @@ HTMLWidgets.widget({
 
           context.putImageData(filtered, 0, 0);
 
-          if ( canvasMousePos.in ) {
+          if ( canvasMousePos.in || wasResized ) {
             // cursor cross
             context.fillStyle = 'red';
-            context.fillRect(0, canvasMousePos.y, imageWidth, 1);
-            context.fillRect(canvasMousePos.x, 0, 1, imageHeight);
+            context.fillRect(0, canvasMousePos.y, canvasWidth, 1);
+            context.fillRect(canvasMousePos.x, 0, 1, canvasHeight);
             const { x, y } = realCursorPos(canvasMousePos)
             // barcharts
             Object.keys(barcharts).forEach(k => {
@@ -445,19 +438,48 @@ HTMLWidgets.widget({
               }
             })
           }
-          isUpdated = false;
+          isUpdated = wasResized = false;
           requestAnimationFrame(animationFrame);
         };
         animationFrame();
-
-      },
-
-      resize: function(width, height) {
-
-        // TODO: code to re-render the widget with a new size
-
-      }
-
     };
+
+    const resize = function(widgetWidth, widgetHeight) {
+        // console.log(`resize.width=${widgetWidth}, resize.height=${widgetHeight}`);
+        canvasWidth  = widgetWidth  - barchartSize - barchartExtraWidth - outputValuesWidth
+        canvasHeight = widgetHeight - barchartSize - barchartExtraHeight
+        if ( canvasWidth  < (imageWidth  / 8) ) canvasWidth  = imageWidth  / 8
+        if ( canvasHeight < (imageHeight / 8) ) canvasHeight = imageHeight / 8
+
+        // proportional scaling
+        if ( (canvasWidth / imageWidth) > (canvasHeight / imageHeight) ) {
+          canvasWidth = Math.round( 1.0 * canvasHeight * imageWidth / imageHeight )
+        } else if ( (canvasWidth / imageWidth) < (canvasHeight / imageHeight) ) {
+          canvasHeight = Math.round( 1.0 * canvasWidth * imageHeight / imageWidth )
+        }
+
+        $(el).find('#image')
+             .attr({ width: canvasWidth, height: canvasHeight });
+
+        $(el).find('#barchartX')
+             .attr({ width: canvasHeight, height: barchartSize })
+             .css({ left       : `-${canvasHeight + barchartExtraWidth - 8}px`
+                  , marginRight: `-${canvasHeight + barchartExtraWidth - barchartSize - barchartExtraHeight}px`
+                  })
+        $(el).find('#barchartY')
+             .attr({ width: canvasWidth + barchartExtraWidth, height: barchartSize })
+             .css({ marginLeft: `${barchartExtraWidth + barchartExtraHeight}px` })
+
+        xy_chart_wide.width(  canvasWidth  + barchartExtraWidth  )
+                     .height( barchartSize + barchartExtraHeight )
+        xy_chart_tall.width(  canvasHeight + barchartExtraWidth  )
+                     .height( barchartSize + barchartExtraHeight )
+        zoomViewport(0)
+        isUpdated = wasResized = true
+    };
+
+    return { renderValue
+           , resize
+           }
   }
 });

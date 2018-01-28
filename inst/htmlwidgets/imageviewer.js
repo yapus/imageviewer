@@ -317,7 +317,12 @@ HTMLWidgets.widget({
         brightnessSlider.slider( "value", 123 );
         contrastSlider.slider( "value", 245 );
 
-        var canvasMousePos = { x: NaN, y: NaN, in: true };
+        var canvasMousePos = { x: NaN
+                             , y: NaN
+                             , in: true
+                             , down: { x: NaN, y: NaN }
+                             , click: false
+                             };
         var viewport = { x: 0, y: 0, w: imageWidth, h: imageHeight };
         var realCursorPos = ({ x, y }) => {
           return {
@@ -346,12 +351,31 @@ HTMLWidgets.widget({
         var inputs = $(el).find('#outputValues input');
         canvas.addEventListener('mouseenter', evt => { canvasMousePos.in = true;  isUpdated = true; })
         canvas.addEventListener('mouseleave', evt => { canvasMousePos.in = false; isUpdated = true; })
+        canvas.addEventListener('mousedown',  evt => { canvasMousePos.click = true; Object.assign(canvasMousePos.down, getMousePos(canvas, evt)); })
+        canvas.addEventListener('mouseup',    evt => { canvasMousePos.click = false; canvasMousePos.down = { x: NaN, y: NaN }; })
         canvas.addEventListener('mousemove', evt => {
           Object.assign(canvasMousePos, getMousePos(canvas, evt));
           var { x, y } = realCursorPos( canvasMousePos );
-          inputs[0].value = x;
-          inputs[1].value = y;
-          inputs[2].value = data[ imageWidth * y + x ].toExponential(3);
+          inputs[0].value = x + 1;
+          inputs[1].value = y + 1;
+          inputs[2].value = null != data[ imageWidth * y + x ]
+                          ? data[ imageWidth * y + x ].toExponential(3)
+                          : 'NaN'
+                          ;
+          if ( canvasMousePos.click
+            && !isNaN(canvasMousePos.down.x) && !isNaN(canvasMousePos.down.y)
+            && ( canvasMousePos.down.x != canvasMousePos.x || canvasMousePos.down.y != canvasMousePos.y )
+          ) {
+            var scale = imageWidth / viewport.w;
+            viewport.x += Math.round((canvasMousePos.down.x - canvasMousePos.x) / scale);
+            viewport.y += Math.round((canvasMousePos.down.y - canvasMousePos.y) / scale);
+            canvasMousePos.down.x = canvasMousePos.x;
+            canvasMousePos.down.y = canvasMousePos.y;
+            if ( 0           > viewport.x              ) viewport.x = 0;
+            if ( 0           > viewport.y              ) viewport.y = 0;
+            if ( imageWidth  < viewport.x + viewport.w ) viewport.x = imageWidth  - viewport.w;
+            if ( imageHeight < viewport.y + viewport.h ) viewport.y = imageHeight - viewport.h;
+          }
           isUpdated = true;
         }, false);
         canvas.addEventListener('wheel', evt => {
@@ -360,7 +384,7 @@ HTMLWidgets.widget({
             brightnessSlider.slider( "value", brightnessSlider.slider( "value" ) + evt.deltaY );
           if (evt.shiftKey)
             contrastSlider.slider( "value", contrastSlider.slider( "value" ) + evt.deltaY );
-          if (evt.ctrlKey && !evt.altKey && !evt.shiftKey) {
+          if (!evt.ctrlKey && !evt.altKey && !evt.shiftKey) {
             zoomViewport(evt.deltaY);
           }
         })

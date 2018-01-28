@@ -7,7 +7,7 @@ HTMLWidgets.widget({
   factory: function(el, widgetWidth, widgetHeight) {
     var barchartSize        = 128
       , barchartExtraWidth  = 64
-      , barchartExtraHeight = 16
+      , barchartExtraHeight = 24
       , outputValuesWidth   = 128
       , zoomIntensity       = 0.2
       , zoomSensitivity     = 1 / 120.0
@@ -44,7 +44,8 @@ HTMLWidgets.widget({
              --><div class="rowend"></div><!--
            --></div><!--
            --><div class="row row2"><!--
-             --><svg id="barchartY" width="${w+barchartExtraWidth}" height="${barchartSize}"></svg><!--
+             --><svg id="barchartY" width="${w+barchartExtraWidth}" height="${barchartSize}"
+                     style="margin-left:${barchartExtraWidth + barchartExtraHeight}px"></svg><!--
              --><div id="outputValues"><!--
                --><ul><li>X:</li><input type="text" size="10"/></ul><!--
                --><ul><li>Y:</li><input type="text" size="10"/></ul><!--

@@ -329,7 +329,7 @@ HTMLWidgets.widget({
 
         brightnessSlider.slider( "value", Math.round(256.0 * initialBrightness) );
         contrastSlider.slider( "value",   Math.round(256.0 * initialContrast  ) );
-        $('#sliders').hide();
+        // $('#sliders').hide();
 
         var canvasMousePos = { x: NaN
                              , y: NaN

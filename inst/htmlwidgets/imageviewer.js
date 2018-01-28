@@ -333,12 +333,11 @@ HTMLWidgets.widget({
         contrastSlider.slider( "value",   Math.round(256.0 * initialContrast  ) );
         // $('#sliders').hide();
 
-        var canvasMousePos = { x: NaN
-                             , y: NaN
-                             , in: true
-                             , down: { x: NaN, y: NaN }
-                             , click: false
-                             };
+        Object.assign(canvasMousePos, { x: NaN, y: NaN
+                                      , in: true
+                                      , down: { x: NaN, y: NaN }
+                                      , click: false
+                                      })
         Object.assign(viewport, { x: 0, y: 0, w: imageWidth, h: imageHeight });
         var realCursorPos = ({ x, y }) => {
           return {
@@ -348,6 +347,15 @@ HTMLWidgets.widget({
         };
 
         var inputs = $(el).find('#outputValues input');
+        const updateCursorValues = ({x, y}) => {
+          inputs[0].value = x + 1;
+          inputs[1].value = y + 1;
+          inputs[2].value = null != data[ imageWidth * y + x ]
+                          ? data[ imageWidth * y + x ].toExponential(3)
+                          : 'NaN'
+                          ;
+        }
+
         canvas.addEventListener('mouseenter', evt => { canvasMousePos.in = true;  isUpdated = true; })
         canvas.addEventListener('mouseleave', evt => { canvasMousePos.in = false; isUpdated = true; })
         canvas.addEventListener('mousedown',  evt => { canvasMousePos.click = true; Object.assign(canvasMousePos.down, getMousePos(canvas, evt)); })
@@ -356,12 +364,9 @@ HTMLWidgets.widget({
           Object.assign(canvasMousePos, getMousePos(canvas, evt));
           var { x, y } = realCursorPos( canvasMousePos );
           if ( 0 > x || imageWidth < x || 0 > y || imageHeight < y ) return (isUpdated = true);
-          inputs[0].value = x + 1;
-          inputs[1].value = y + 1;
-          inputs[2].value = null != data[ imageWidth * y + x ]
-                          ? data[ imageWidth * y + x ].toExponential(3)
-                          : 'NaN'
-                          ;
+
+          updateCursorValues({ x, y })
+
           if ( canvasMousePos.click
             && !isNaN(canvasMousePos.down.x) && !isNaN(canvasMousePos.down.y)
             && ( canvasMousePos.down.x != canvasMousePos.x || canvasMousePos.down.y != canvasMousePos.y )
@@ -386,6 +391,7 @@ HTMLWidgets.widget({
             contrastSlider.slider( "value", contrastSlider.slider( "value" ) + evt.deltaY );
           if (!evt.ctrlKey && !evt.altKey && !evt.shiftKey) {
             zoomViewport(evt.deltaY);
+            updateCursorValues(realCursorPos( canvasMousePos ));
           }
         })
 
@@ -409,9 +415,10 @@ HTMLWidgets.widget({
 
           if ( canvasMousePos.in || wasResized ) {
             // cursor cross
-            context.fillStyle = 'red';
-            context.fillRect(0, canvasMousePos.y, canvasWidth, 1);
-            context.fillRect(canvasMousePos.x, 0, 1, canvasHeight);
+            var cursorWidth = Math.ceil(imageWidth / viewport.w / 2)
+            context.fillStyle = 'rgba(255, 0, 0, 0.5)'
+            context.fillRect(0, canvasMousePos.y - cursorWidth, canvasWidth, cursorWidth)
+            context.fillRect(canvasMousePos.x - cursorWidth, 0, cursorWidth, canvasHeight)
             const { x, y } = realCursorPos(canvasMousePos)
             // barcharts
             Object.keys(barcharts).forEach(k => {

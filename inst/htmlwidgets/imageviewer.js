@@ -258,6 +258,8 @@ HTMLWidgets.widget({
           // , imageHeight  = x.data.length        // || height
           , canvasWidth  = imageWidth  < width  ? imageWidth  : width
           , canvasHeight = imageHeight < height ? imageHeight : height
+          , initialBrightness = isNaN(parseFloat(settings.brightness, 10)) ? 0.03 : parseFloat(settings.brightness, 10)
+          , initialContrast   = isNaN(parseFloat(settings.contrast, 10))   ? 0.95 : parseFloat(settings.contrast,   10)
           ;
         // proportional scaling
         if ( canvasWidth == imageWidth && canvasHeight < imageHeight ){
@@ -301,7 +303,7 @@ HTMLWidgets.widget({
 
         var isUpdated = false;
         var refreshFilter = (event, ui) => {
-          $(ui.handle.parentNode).find('.ui-slider-handle').text( Math.floor(100 * (ui.value - 127) / 128.0) + '%');
+          $(ui.handle.parentNode).find('.ui-slider-handle').text( Math.floor(100 * ui.value / 256.0) + '%');
           isUpdated = true;
         };
         $(el).find('div.slider').slider({
@@ -315,8 +317,8 @@ HTMLWidgets.widget({
         var brightnessSlider = $(el).find( `#brightness_${id}` )
           , contrastSlider   = $(el).find( `#contrast_${id}`   );
 
-        brightnessSlider.slider( "value", 123 );
-        contrastSlider.slider( "value", 245 );
+        brightnessSlider.slider( "value", Math.round(256.0 * initialBrightness) );
+        contrastSlider.slider( "value",   Math.round(256.0 * initialContrast  ) );
 
         var canvasMousePos = { x: NaN
                              , y: NaN
@@ -391,8 +393,8 @@ HTMLWidgets.widget({
         })
 
         var animationFrame = function() {
-          var brightness = Math.floor(100 * (brightnessSlider.slider( "value" ) - 127 ) / 128.0)
-            , contrast   = Math.floor(100 * (contrastSlider.slider( "value" ) - 127 ) / 128.0)
+          var brightness = -Math.floor(100 * brightnessSlider.slider( "value" ) / 256.0)
+            , contrast   = Math.floor(100 * contrastSlider.slider( "value" )   / 256.0)
             ;
           if ( !isUpdated ) return requestAnimationFrame(animationFrame);
 

@@ -62,6 +62,12 @@
     margin-left: 88px;
     /*margin-left: 5px;*/
   }
+  #intensityChart {
+    transform: rotate(-90deg);
+    transform-origin: 100% 0%;
+    /*position: relative;*/
+    margin-left: -480px;
+  }
   #sliders {
     display: table-cell;
     height: auto;

@@ -22,6 +22,7 @@ HTMLWidgets.widget({
                --><div id="brightness_${id}" class="brightness slider"></div><!--
                --><div id="contrast_${id}" class="contrast slider"></div><!--
              --></div><!--
+             --><svg id="intensityChart" width="${outputValuesWidth}" height="${h}"></svg><!--
              --><div class="rowend"></div><!--
            --></div><!--
            --><div class="row row2"><!--
@@ -55,78 +56,63 @@ HTMLWidgets.widget({
 
     var transposeArray = array => array[0].map( (col, i) => array.map( row => row[i] ) )
 
-    var d3_xy_chart = ({
-        width  = 640
-      , height = 480
-      , xlabel = ''
-      , ylabel = ''
-      , rotate = '0deg'
-    } = {}) => {
+    var d3_xy_chart = ({ width  = 640, height = 480, xlabel = '', ylabel = '' } = {}) => {
 
       var imageWidth  = width + barchartExtraWidth
         , imageHeight = height + barchartExtraHeight
-        ;
 
       var chart = (selection) => {
         selection.each(function(datasets) {
-            //
-            // Create the plot.
-            //
-            var margin = {top: 0, right: 0, bottom: barchartExtraHeight, left: barchartExtraWidth},
-                innerwidth = width - margin.left - margin.right,
-                innerheight = height - margin.top - margin.bottom ;
+          const margin      = { top: 0, right: 0, bottom: barchartExtraHeight, left: barchartExtraWidth }
+              , innerwidth  = width  - margin.left - margin.right
+              , innerheight = height - margin.top - margin.bottom
 
-            var x_scale = d3.scale.linear()
+            var x_scale = d3.scaleLinear()
                 .range([0, innerwidth])
                 .domain([ d3.min(datasets, d => d3.min(d.x) ),
                           d3.max(datasets, d => d3.max(d.x) ) ]) ;
 
-            var y_scale = d3.scale.linear()
+            var y_scale = d3.scaleLinear()
                 .range([innerheight, 0])
                 .domain([ d3.min(datasets, function(d) { return d3.min(d.y); }),
                           d3.max(datasets, function(d) { return d3.max(d.y); }) ]) ;
 
-            var color_scale = d3.scale.category10()
+            var color_scale = d3.scaleOrdinal(d3.schemeCategory10)
                 .domain(d3.range(datasets.length)) ;
 
-            var x_axis = d3.svg.axis()
+            var x_axis = d3.axisBottom()
                 .scale(x_scale)
                 .ticks( Math.floor(imageWidth / 100) )
                 .tickSize(-5)
-                .orient("bottom") ;
 
-            var y_axis = d3.svg.axis()
+            var y_axis = d3.axisLeft()
                 .scale(y_scale)
                 .ticks(3, "e")
                 .tickSize(-5)
-                .orient("left");
-                // .orient("right") ;
 
-            var x_grid = d3.svg.axis()
+            var x_grid = d3.axisBottom()
                 .scale(x_scale)
-                .orient("bottom")
                 .ticks( Math.floor(imageWidth / 100) )
                 .tickSize(-innerheight)
-                .tickFormat("") ;
+                .tickFormat("")
 
-            var y_grid = d3.svg.axis()
+            var y_grid = d3.axisLeft()
                 .scale(y_scale)
-                .orient("left")
                 .ticks(6)
                 .tickSize(-innerwidth)
-                .tickFormat("") ;
+                .tickFormat("")
 
-            var draw_line = d3.svg.line()
-                .interpolate("linear")
+            var draw_line = d3.line()
                 .x(d => x_scale(d[0]) )
-                .y(d => y_scale(d[1]) );
+                .y(d => y_scale(d[1]) )
+            d3.curveLinear(draw_line)
 
             var svg = d3.select(this)
                 .attr("width", width)
-                .attr("height", height);
+                .attr("height", height)
 
             selectOrAppend(svg, 'g')
-                .attr("transform", `translate(${margin.left},${margin.top})`) ;
+                .attr("transform", `translate(${margin.left},${margin.top})`)
 
             svg = svg.select("g");
 
@@ -225,11 +211,151 @@ HTMLWidgets.widget({
       return chart;
     }
 
-    var isUpdated = false;
-    var wasResized = false;
+    const d3_intensity_chart = ({ width = 576, height = 128, xlabel = '', ylabel = ''} = {}) => {
+      const chart = (selection) => {
+        selection.each(function(datasets) {
+          const margin      = { top: 0, right: 0, bottom: height/2, left: barchartExtraWidth }
+              , innerwidth  = width  - margin.left - margin.right
+                innerheight = height - margin.top  - margin.bottom
+
+            var x_scale = d3.scaleLinear()
+                .range([0, innerwidth])
+                .domain([ d3.min(datasets, d => d3.min(d.x) ),
+                          d3.max(datasets, d => d3.max(d.x) ) ]) ;
+
+            var y_scale = d3.scaleLinear()
+                .range([innerheight, 0])
+                .domain([ d3.min(datasets, d => d3.min(d.y) ),
+                          d3.max(datasets, d => d3.max(d.y) * 1.05 ) ]) ;
+
+            var color_scale = d3.scaleOrdinal(d3.schemeCategory10)
+                .domain(d3.range(datasets.length)) ;
+
+            var x_axis = d3.axisBottom()
+                .scale(x_scale)
+                .ticks( Math.floor(imageWidth / 100) )
+                .tickSize(-5)
+              x_axis
+
+            var y_axis = d3.axisLeft()
+                .scale(y_scale)
+                .ticks(3)
+                .tickFormat("")
+                .tickSize(-5)
+
+            var x_grid = d3.axisBottom()
+                .scale(x_scale)
+                .ticks( Math.floor(imageWidth / 100) )
+                .tickSize(-innerheight)
+                .tickFormat("")
+                // .attr("transform", d => 'rotate(-65)')
+                ;
+
+            var y_grid = d3.axisLeft()
+                .scale(y_scale)
+                .ticks(6)
+                .tickSize(-innerwidth)
+                .tickFormat("")
+
+            var draw_line = d3.line()
+                .x(d => x_scale(d[0]) )
+                .y(d => y_scale(d[1]) )
+                d3.curveLinear(draw_line)
+
+            var svg = d3.select(this)
+                .attr("width", width)
+                .attr("height", height);
+
+            selectOrAppend(svg, 'g')
+                .attr("transform", `translate(${margin.left},${margin.top})`) ;
+
+            svg = svg.select("g");
+
+            selectOrAppend(svg, "g.x.grid", "g")
+                .attr("class", "x grid")
+                .attr("transform", `translate(0, ${innerheight})`)
+                .call(x_grid);
+
+            selectOrAppend(svg, "g.y.grid", "g")
+                .attr("class", "y grid")
+                .call(y_grid) ;
+
+            selectOrAppend(
+              selectOrAppend(svg, 'g.x.axis', 'g')
+                .attr("class", "x axis")
+                .attr("transform", `translate(0, ${innerheight})`)
+                .call(x_axis)
+            , "text.label"
+            , "text"
+            ).attr("dy", "-.71em")
+             .attr("x", innerwidth)
+             .attr("class", "label")
+             .style("text-anchor", "end")
+             .text(xlabel)
+
+            svg.select('g.x.axis').selectAll('text').attr('transform', d => 'rotate(90) translate(10, -7)')
+
+            selectOrAppend(
+              selectOrAppend(svg, 'g.y.axis', 'g')
+                .attr("class", "y axis")
+                // .attr("transform", `translate(${innerwidth}, 0)`)
+                .call(y_axis)
+            , "text.label"
+            , "text"
+            ).attr("transform", "rotate(-90)")
+             .attr("y", 6)
+             .attr("class", "label")
+             .attr("dy", "0.71em")
+             .style("text-anchor", "end")
+             .text(ylabel)
+             ;
+
+            var data_lines = svg.selectAll(".d3_xy_chart_line")
+                .data(datasets.map( d => d3.zip(d.x, d.y) ));
+            data_lines
+                .enter().append("g")
+                .attr("class", "d3_xy_chart_line")
+            data_lines
+                .exit().remove();
+
+            selectOrAppend(data_lines, "path")
+                .attr("class", "line")
+                .attr("d", d => draw_line(d) )
+                .attr("stroke", (_, i) => color_scale(i) );
+
+            selectOrAppend(data_lines, "text")
+                .datum((d, i) => { return {name: datasets[i].label, final: d[d.length-1]}; })
+                .attr("transform", d => (
+                    null != d && null != d.final
+                      ? ( "translate(" + x_scale(d.final[0]) + "," + y_scale(d.final[1]) + ")" )
+                      : ''
+                  ))
+                .attr("x", 3)
+                .attr("dy", ".35em")
+                .attr("fill", (_, i) => color_scale(i) )
+                .text(d => d.name );
+
+            selectOrAppend(svg, "rect.selection", "rect")
+                .attr("class", "selection")
+                .attr("stroke", 'rgba(0, 0, 0, 0.5)')
+                .attr("fill", 'rgba(0, 255, 0, 0.5)')
+                .attr({ x: 50, y: 0, width: innerwidth - 100, height: innerheight })
+        })
+      }
+      return Object.assign(chart, {
+        width : value => ( arguments.length ? ( width  = value, chart ) : width  )
+      , height: value => ( arguments.length ? ( height = value, chart ) : height )
+      , xlabel: value => ( arguments.length ? ( xlabel = value, chart ) : xlabel )
+      , ylabel: value => ( arguments.length ? ( ylabel = value, chart ) : ylabel )
+      })
+    }
+
+
+    var isUpdated = true;
+    var wasResized = true;
     var imageWidth, imageHeight, canvasWidth, canvasHeight;
     var viewport = { x: 0, y: 0, w: 0, h: 0 };
-    var xy_chart_wide, xy_chart_tall;
+    var xy_chart_wide, xy_chart_tall, xy_chart_intensity;
     var canvasMousePos = { x: NaN
                          , y: NaN
                          , in: true
@@ -237,7 +363,7 @@ HTMLWidgets.widget({
                          , click: false
                          };
 
-    var zoomViewport = (zoomDelta) => {
+    const zoomViewport = (zoomDelta) => {
       const wheel = zoomDelta * zoomSensitivity
           , zoom  = Math.exp(wheel*zoomIntensity)
           , scale = imageWidth / viewport.w
@@ -263,6 +389,7 @@ HTMLWidgets.widget({
                          : x.data
           , settings     = x.settings || {}
           // , isBarChart   = ('bar' === settings.chart)
+          , minValue     = data.reduce((a, b) => (a < b ? a : b), Number.MAX_SAFE_INTEGER)
           , maxValue     = data.reduce((a, b) => (a < b ? b : a), 0)
           , normdata     = data.map((d, i) => Math.floor(255.0 * d / maxValue))
           ;
@@ -284,15 +411,17 @@ HTMLWidgets.widget({
         } else if ( (canvasWidth / imageWidth) < (canvasHeight / imageHeight) ) {
           canvasHeight = Math.round( 1.0 * canvasWidth * imageHeight / imageWidth );
         }
-        // console.log(`imageWidth=${imageWidth}; imageHeight=${imageHeight}`);
-        // console.log(`canvasWidth=${canvasWidth}; canvasHeight=${canvasHeight}`);
 
         xy_chart_wide = d3_xy_chart({ width : canvasWidth + barchartExtraWidth
                                     , height: barchartSize + barchartExtraHeight
-                                    });
+                                    })
         xy_chart_tall = d3_xy_chart({ width : canvasHeight + barchartExtraWidth
                                     , height: barchartSize + barchartExtraHeight
-                                    });
+                                    })
+
+        xy_chart_intensity = d3_intensity_chart({ width : canvasHeight + barchartExtraWidth
+                                                , height: barchartSize + barchartExtraHeight
+                                                })
 
         var id = el.id;
         $(el).append($(
@@ -305,6 +434,24 @@ HTMLWidgets.widget({
         var barcharts = { X: { svg: d3.select( $(el).find('#barchartX')[0] ) }
                         , Y: { svg: d3.select( $(el).find('#barchartY')[0] ) }
                         }
+        $(el).find('#intensityChart')
+             .attr({ height: canvasHeight })
+             .css({ marginLeft: `-${canvasHeight + barchartExtraWidth}px` })
+        // xy_chart_intensity
+        // const [ min, max ] = data.reduce( ([min, max], v) => {
+        //   return [ min < v ? min : v
+        //          , max > v ? max : v
+        //          ] }, [Number.MAX_SAFE_INTEGER, 0])
+        // const intensityXdata = Array.from({ length: 256 }, (_, i) => (min + i * (( max - min ) / 256 )) )
+        const add = 1.2
+        const intensityXdata = Array.from({ length: 256 }, (_, i) => ( add * i / 256 ) )
+        const intensityYData = data.reduce((res, v) => (
+            res[ Math.round((256 * v / (add*maxValue)))]++
+          , res
+          ), Array.from({ length: 256 }, () => 0))
+        var intensityChart = d3.select( $(el).find('#intensityChart')[0] )
+        console.log({x: intensityXdata, y: intensityYData.filter(x => 0 != x) })
+        intensityChart.data([[{ label: '', x: intensityXdata, y: intensityYData }]]).call(xy_chart_intensity)
 
         var imagedata = context.createImageData(imageWidth, imageHeight);
         normdata.forEach( (c, i) => {
@@ -331,6 +478,7 @@ HTMLWidgets.widget({
 
         brightnessSlider.slider( "value", Math.round(256.0 * initialBrightness) );
         contrastSlider.slider( "value",   Math.round(256.0 * initialContrast  ) );
+        $('#intensityChart').hide();
         // $('#sliders').hide();
 
         Object.assign(canvasMousePos, { x: NaN, y: NaN
@@ -412,7 +560,9 @@ HTMLWidgets.widget({
             )
 
           context.putImageData(filtered, 0, 0);
-
+          if ( wasResized ) {
+            intensityChart.data([[{ label: '', x: intensityXdata, y: intensityYData }]]).call(xy_chart_intensity)
+          }
           if ( canvasMousePos.in || wasResized ) {
             // cursor cross
             var cursorWidth = Math.ceil(imageWidth / viewport.w / 2)
@@ -456,7 +606,7 @@ HTMLWidgets.widget({
     const resize = function(widgetWidth, widgetHeight) {
         // console.log(`resize.width=${widgetWidth}, resize.height=${widgetHeight}`);
         canvasWidth  = widgetWidth  - barchartSize - barchartExtraWidth - outputValuesWidth
-        canvasHeight = widgetHeight - barchartSize - barchartExtraHeight
+        canvasHeight = widgetHeight - barchartSize - barchartExtraHeight - 16
         if ( canvasWidth  < (imageWidth  / 8) ) canvasWidth  = imageWidth  / 8
         if ( canvasHeight < (imageHeight / 8) ) canvasHeight = imageHeight / 8
 
@@ -479,10 +629,16 @@ HTMLWidgets.widget({
              .attr({ width: canvasWidth + barchartExtraWidth, height: barchartSize })
              .css({ marginLeft: `${barchartExtraWidth + barchartExtraHeight}px` })
 
+        $(el).find('#intensityChart')
+             .attr({ height: canvasHeight })
+             .css({ marginLeft: `-${canvasHeight + barchartExtraWidth}px` })
+
         xy_chart_wide.width(  canvasWidth  + barchartExtraWidth  )
                      .height( barchartSize + barchartExtraHeight )
         xy_chart_tall.width(  canvasHeight + barchartExtraWidth  )
                      .height( barchartSize + barchartExtraHeight )
+        xy_chart_intensity.width(  canvasHeight + barchartExtraWidth  )
+                          .height( barchartSize + barchartExtraHeight )
         zoomViewport(0)
         isUpdated = wasResized = true
     };

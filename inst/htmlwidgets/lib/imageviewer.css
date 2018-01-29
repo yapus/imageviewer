@@ -44,6 +44,11 @@
     display: block;
     margin-left: 88px;
     /*margin-left: 5px;*/ }
+  .widgetcontainer #intensityChart {
+    transform: rotate(-90deg);
+    transform-origin: 100% 0%;
+    /*position: relative;*/
+    margin-left: -480px; }
   .widgetcontainer #sliders {
     display: table-cell;
     height: auto;

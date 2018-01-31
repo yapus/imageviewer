@@ -535,7 +535,7 @@ HTMLWidgets.widget({
         var brightnessSlider = $(el).find( `#brightness_${id}` )
           , contrastSlider   = $(el).find( `#contrast_${id}`   );
 
-        brightnessSlider.slider( "value", Math.round(256.0 * initialBrightness) );
+        brightnessSlider.slider( "value", Math.round(128.0 + 128.0 * initialBrightness) );
         contrastSlider.slider( "value",   Math.round(256.0 * initialContrast  ) );
         // $('#intensityChart').hide();
         // $('#sliders').hide();
@@ -603,7 +603,7 @@ HTMLWidgets.widget({
         })
 
         var animationFrame = function() {
-          var brightness = Math.floor(100 * brightnessSlider.slider( "value" ) / 256.0)
+          var brightness = Math.floor(100 * (brightnessSlider.slider( "value" ) - 128) / 128.0)
             , contrast   = Math.floor(100 * contrastSlider.slider( "value" )   / 256.0)
             ;
           if ( !isUpdated ) return requestAnimationFrame(animationFrame);

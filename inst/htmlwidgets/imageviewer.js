@@ -417,6 +417,9 @@ HTMLWidgets.widget({
       return (isUpdated = canvasMousePos.in = true)
     }
 
+    const normalizeData = (data, minValue, maxValue) =>
+      data.map((d, i) => Math.floor(255.0 * (d - minValue) / (maxValue - minValue)))
+
     const renderValue = function(x) {
         var data         = ( null != x.data[0] && x.data[0].hasOwnProperty('length') )
                          ? [].concat(...transposeArray(x.data || []))
@@ -425,7 +428,7 @@ HTMLWidgets.widget({
           // , isBarChart   = ('bar' === settings.chart)
           , minValue     = data.reduce((a, b) => (a < b ? a : b), Number.MAX_SAFE_INTEGER)
           , maxValue     = data.reduce((a, b) => (a < b ? b : a), 0)
-          , normdata     = data.map((d, i) => Math.floor(255.0 * d / maxValue))
+          , normdata     = normalizeData(data, minValue, maxValue)
           ;
         imageWidth       = x.data.length     // || width
         imageHeight      = x.data[0].length  // || height
@@ -464,6 +467,19 @@ HTMLWidgets.widget({
         xy_chart_intensity.updated( () => {
           console.log('xy_chart_intensity.updated')
           isUpdated = true
+
+          const limit = xy_chart_intensity.limit()
+          const minImageValue = 0
+              , maxImageValue = 255
+
+          fillImageData( normdata.map( (x, i) => (
+            limit.min > data[i]
+            ? minImageValue
+            : ((limit.min - minValue) + limit.width) < data[i]
+            ? maxImageValue
+            : x
+          )), minValue, maxValue)
+
         })
 
         var id = el.id;
@@ -495,15 +511,14 @@ HTMLWidgets.widget({
         intensityChart.data([[{ label: '', x: intensityXdata, y: intensityYData }]]).call(xy_chart_intensity)
 
         var imagedata = context.createImageData(imageWidth, imageHeight);
-        const fillImageData = (data, minValue, maxValue) =>
-          data.map((d, i) => Math.floor(255.0 * (d - minValue) / (maxValue - minValue)))
-          .forEach( (c, i) => {
+        const fillImageData = (data) =>
+          data.forEach( (c, i) => {
             imagedata.data[i * 4    ] = c;
             imagedata.data[i * 4 + 1] = c;
             imagedata.data[i * 4 + 2] = c;
             imagedata.data[i * 4 + 3] = 255;
           })
-        fillImageData(data, minValue, maxValue)
+        fillImageData( normdata )
 
         var refreshFilter = (event, ui) => {
           $(ui.handle.parentNode).find('.ui-slider-handle').text( Math.floor(100 * ui.value / 256.0) + '%');
@@ -592,16 +607,6 @@ HTMLWidgets.widget({
             , contrast   = Math.floor(100 * contrastSlider.slider( "value" )   / 256.0)
             ;
           if ( !isUpdated ) return requestAnimationFrame(animationFrame);
-
-          const limit = xy_chart_intensity.limit()
-          // console.log(limit, ((limit.min - minValue) + limit.width))
-          fillImageData( data.map(x => (
-            limit.min > x
-            ? minValue
-            : ((limit.min - minValue) + limit.width) < x
-            ? maxValue
-            : x
-          )), minValue, maxValue)
 
           var filtered = ImageFilters.Resize(
               ImageFilters.CropBuiltin(

@@ -22,7 +22,8 @@
   .widgetcontainer svg path {
     fill: none; }
   .widgetcontainer svg g text {
-    font-size: 9pt; }
+    font-size: 9pt;
+    fill: black; }
   .widgetcontainer svg g.axis g.tick {
     color: black; }
     .widgetcontainer svg g.axis g.tick line {
@@ -31,6 +32,8 @@
     stroke: #000; }
   .widgetcontainer svg g.grid line {
     stroke: #888; }
+  .widgetcontainer svg rect.selection.dragging {
+    fill: rgba(0, 255, 0, 0.4); }
   .widgetcontainer #barchartX {
     /*border: 1px solid red;*/
     flex-grow: 0;
@@ -52,13 +55,15 @@
   .widgetcontainer #sliders {
     display: table-cell;
     height: auto;
-    width: 100px; }
+    width: 80px; }
   .widgetcontainer div.slider {
     display: inline-block;
     height: 100%;
-    width: 40px; }
+    width: 38px; }
   .widgetcontainer div.slider .ui-slider-handle {
-    width: 45px;
+    /*width: 45px;*/
+    width: 36px;
+    left: 0px;
     z-index: 6;
     text-align: center; }
   .widgetcontainer div.slider::after {

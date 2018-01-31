@@ -29,6 +29,7 @@
     g {
       text {
         font-size: 9pt;
+        fill: black;
       }
     }
     g.axis {
@@ -45,6 +46,9 @@
       line {
         stroke: #888;
       }
+    }
+    rect.selection.dragging {
+      fill: rgba(0, 255, 0, 0.4);
     }
   }
   #barchartX {
@@ -71,15 +75,17 @@
   #sliders {
     display: table-cell;
     height: auto;
-    width: 100px;
+    width: 80px;
   }
   div.slider {
     display: inline-block;
     height: 100%;
-    width: 40px;
+    width: 38px;
   }
   div.slider .ui-slider-handle {
-    width: 45px;
+    /*width: 45px;*/
+    width: 36px;
+    left: 0px;
     z-index: 6;
     text-align: center;
   }

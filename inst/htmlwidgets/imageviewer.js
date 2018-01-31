@@ -311,6 +311,11 @@ HTMLWidgets.widget({
              .text(ylabel)
              ;
 
+            var minX = d3.min(datasets, d => d3.min(d.x) )
+              , maxX = d3.max(datasets, d => d3.max(d.x) )
+              , minY = d3.min(datasets, d => d3.min(d.y) )
+            //  , maxY = d3.max(datasets, d => d3.max(d.y) )
+            // console.log(`minX=${x_scale(minX)}, maxX=${x_scale(maxX)}, minY=${y_scale(minY)}, maxY=${y_scale(maxY)}, maxX - minX = ${maxX - minX}`)
             var data_lines = svg.selectAll(".d3_xy_chart_line")
                 .data(datasets.map( d => d3.zip(d.x, d.y) ));
             data_lines
@@ -322,7 +327,7 @@ HTMLWidgets.widget({
             selectOrAppend(data_lines, "polyline")
               .attr("stroke", (_, i) => color_scale(i) )
               .attr("fill",   (_, i) => color_scale(i) )
-              .attr("points", d => d.map(v => [ x_scale(v[0]), y_scale(v[1])] ))
+              .attr("points", d => d.concat([[minX, minY]]).map(v => [ x_scale(v[0]), y_scale(v[1])] ))
               ;
             // selectOrAppend(data_lines, "path")
             //     .attr("class", "line")
@@ -341,11 +346,6 @@ HTMLWidgets.widget({
                 .attr("fill", (_, i) => color_scale(i) )
                 .text(d => d.name );
 
-            var minX = d3.min(datasets, d => d3.min(d.x) )
-              , maxX = d3.max(datasets, d => d3.max(d.x) )
-            //  , minY = d3.min(datasets, d => d3.min(d.y) )
-            //  , maxY = d3.max(datasets, d => d3.max(d.y) )
-            // console.log(`minX=${x_scale(minX)}, maxX=${x_scale(maxX)}, minY=${y_scale(minY)}, maxY=${y_scale(maxY)}, maxX - minX = ${maxX - minX}`)
             if( 0 == limit.min && Number.MAX_SAFE_INTEGER == limit.width ) {
               limit.min   = minX
               limit.width = maxX
@@ -362,8 +362,9 @@ HTMLWidgets.widget({
             d3.select("rect.selection").call(
               d3.drag().on("start", function(evt) {
                 var rect = d3.select(this).classed("dragging", true);
-                d3.event.on("drag", d=> {
-                  limit.min = limit.min + Math.round((maxX - minX) * (d3.event.dx / innerwidth))
+                d3.event.on("drag", d => {
+                  // console.log(d3.event.dx, d3.event.dy)
+                  limit.min = limit.min + Math.round((maxX - minX) * (-d3.event.dy / innerwidth))
                   rect.raise().attr('x', x_scale(limit.min))
                   if ('function' === typeof updated ) updated()
                 }).on("end", d => {
@@ -465,7 +466,6 @@ HTMLWidgets.widget({
                                                 , updated: () => isUpdated = true
                                                 })
         xy_chart_intensity.updated( () => {
-          console.log('xy_chart_intensity.updated')
           isUpdated = true
 
           const limit = xy_chart_intensity.limit()
@@ -507,7 +507,6 @@ HTMLWidgets.widget({
           , res
           ), Array.from({ length: 256 }, () => 0))
         var intensityChart = d3.select( $(el).find('#intensityChart')[0] )
-        console.log({x: intensityXdata, y: intensityYData.filter(x => 0 != x) })
         intensityChart.data([[{ label: '', x: intensityXdata, y: intensityYData }]]).call(xy_chart_intensity)
 
         var imagedata = context.createImageData(imageWidth, imageHeight);

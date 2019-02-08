@@ -1,7 +1,7 @@
 Package: imageviewer
-Title: simple htmlwidgets binary format image viewer with WebGL brightness/contrast
-Version: 0.1.0.9000
-Author: Iakov Pustilnik
+Title: Simple Htmlwidgets Binary Format Image Viewer with WebGL Brightness/Contrast
+Version: 0.1.0
+Author: Iakov Pustilnik [aut, cre], Denis Rastegaev [aut]
 Maintainer: Iakov Pustilnik <xyapus@gmail.com>
 URL: https://github.com/yapus/imageviewer
 BugReports: https://github.com/yapus/imageviewer/issues
@@ -10,7 +10,7 @@ Authors@R: as.person(c(
     "Denis Rastegaev <leda82@gmail.com> [aut]"
   ))
 Description: Display matrix as a grayscale image. Control brightness/contrast.
-Depends: R (>= 3.4.2), htmlwidgets
+Depends: R (>= 3.4), htmlwidgets
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

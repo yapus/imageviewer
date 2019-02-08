@@ -1,5 +1,5 @@
 Package: imageviewer
-Title: Simple Htmlwidgets Binary Format Image Viewer with WebGL Brightness/Contrast
+Title: Simple 'htmlwidgets' Image Viewer with WebGL Brightness/Contrast
 Version: 0.1.0
 Author: Iakov Pustilnik [aut, cre], Denis Rastegaev [aut]
 Maintainer: Iakov Pustilnik <xyapus@gmail.com>
@@ -9,7 +9,7 @@ Authors@R: as.person(c(
     "Iakov Pustilnik <xyapus@gmail.com> [aut, cre]",
     "Denis Rastegaev <leda82@gmail.com> [aut]"
   ))
-Description: Display matrix as a grayscale image. Control brightness/contrast.
+Description: Display a 2D-matrix data as a interactive zoomable gray-scale image viewer, providing tools for manual data inspection. The viewer window shows cursor guiding lines and a corresponding data slices for both axes at the current cursor position. A tool-bar allows adjusting image display brightness/contrast though WebGL filters and performing basic high-pass/low-pass filtering.
 Depends: R (>= 3.4), htmlwidgets
 License: MIT + file LICENSE
 Encoding: UTF-8

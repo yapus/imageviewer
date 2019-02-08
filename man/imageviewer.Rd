@@ -4,10 +4,17 @@
 \alias{imageviewer}
 \title{imageviewer}
 \usage{
-imageviewer(data, width = NULL, height = NULL, elementId = NULL)
+imageviewer(data, width = NULL, height = NULL, elementId = NULL,
+  options = list())
 }
 \arguments{
 \item{data}{A matrix}
+
+\item{width, height}{matrix dimensions}
+
+\item{elementId}{HTML element Id}
+
+\item{options}{list of other options (passed through to JS code)}
 }
 \value{
 Plot matrix in html widget

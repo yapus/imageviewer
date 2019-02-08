@@ -2,6 +2,9 @@
 #'
 #' Simple htmlwidgets matrix viewer with WebGL brightness/contrast
 #' @param data A matrix
+#' @param width,height matrix dimensions
+#' @param elementId HTML element Id
+#' @param options list of other options (passed through to JS code)
 #' @return Plot matrix in html widget
 #' @examples
 #' # Create matrix

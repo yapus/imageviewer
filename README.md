@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/yapus/imageviewer.svg?branch=master)](https://travis-ci.org/yapus/imageviewer)
+
 Simple htmlwidgets binary format image viewer for R with brightness/contrast filters & svg charts
 
 ![imageviewer example](https://github.com/yapus/imageviewer/raw/gh_pages/images/imageviewer_example.png)

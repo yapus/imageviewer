@@ -5,11 +5,11 @@ Author: Iakov Pustilnik [aut, cre], Denis Rastegaev [aut]
 Maintainer: Iakov Pustilnik <xyapus@gmail.com>
 URL: https://github.com/yapus/imageviewer
 BugReports: https://github.com/yapus/imageviewer/issues
-Authors@R: as.person(c(
-    "Iakov Pustilnik <xyapus@gmail.com> [aut, cre]",
-    "Denis Rastegaev <leda82@gmail.com> [aut]"
-  ))
-Description: Display a 2D-matrix data as a interactive zoomable gray-scale image viewer, providing tools for manual data inspection. The viewer window shows cursor guiding lines and a corresponding data slices for both axes at the current cursor position. A tool-bar allows adjusting image display brightness/contrast though WebGL filters and performing basic high-pass/low-pass filtering.
+Authors@R: c(
+    person("Iakov", "Pustilnik", email = "xyapus@gmail.com", role = c("aut", "cre")),
+    person("Denis", "Rastegaev", email = "leda82@gmail.com", role = "aut")
+  )
+Description: Display a 2D-matrix data as a interactive zoomable gray-scale image viewer, providing tools for manual data inspection. The viewer window shows cursor guiding lines and a corresponding data slices for both axes at the current cursor position. A tool-bar allows adjusting image display brightness/contrast through WebGL filters and performing basic high-pass/low-pass filtering.
 Depends: R (>= 3.4), htmlwidgets
 License: MIT + file LICENSE
 Encoding: UTF-8

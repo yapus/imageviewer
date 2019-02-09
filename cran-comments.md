@@ -1,3 +1,9 @@
+## Resubmission 2
+This is a resubmission. In this version I have:
+
+* Fixed `R CMD check --as-cran` NOTE:
+    Authors@R field should be a call to person(), or combine such calls
+
 ## Resubmission
 This is a resubmission. In this version I have:
 

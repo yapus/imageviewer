@@ -4,13 +4,21 @@ Simple htmlwidgets binary format image viewer for R with brightness/contrast fil
 
 ![imageviewer example](https://github.com/yapus/imageviewer/raw/gh_pages/images/imageviewer_example.png)
 
-example usage:
+install from CRAN:
+```R
+install.packages('imageviewer')
+```
+or
+install directly from github:
 ```R
 install.packages(c("devtools"))
 devtools::install_github("yapus/imageviewer")
-library('imageviewer')
+```
+
+then use like this:
+```R
 m <- matrix(rnorm(512*512), 512, 512)
-imageviewer( m )
+imageviewer::imageviewer( m )
 ```
 
 
